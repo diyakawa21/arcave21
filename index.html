@@ -734,12 +734,7 @@ async function openAddModal(){
   const dup=books.find(b=>(b.title||'').toLowerCase()===title.toLowerCase().trim());
   if(dup){alert(`"${dup.title}" is already in your library.`);return}
   const author=prompt('Author:');if(author===null)return;
-  const sc=prompt('Status?
-1 = Read
-2 = Currently Reading
-3 = Owned / Unread
-4 = Want to Read
-5 = Want to Buy','1');
+  const sc=prompt('Status? 1=Read 2=Reading 3=Owned 4=WantToRead 5=WantToBuy','1');
   const statMap={'1':'read','2':'reading','3':'owned-unread','4':'want-to-read','5':'want-to-buy'};
   const status=statMap[sc?.trim()]||'unread';
   try{
