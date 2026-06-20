@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>arcave · library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0d0d12;
+  --paper: #f5f2eb;
+  --parchment: #ede9df;
+  --ash: #c4bfb3;
+  --smoke: #7a7570;
+  --read: #2a6b4a;
+  --reading: #7a5c1e;
+  --unread: #3a3a5a;
+  --accent: #c4783a;
+  --spine-w: 140px;
+  --spine-h: 210px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 16px;
+  min-height: 100vh;
+}
+/* NAV */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(13,13,18,0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #2a2a38;
+  padding: 0 24px;
+  display: flex; align-items: center; gap: 20px; height: 56px;
+}
+.nav-brand {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent);
+}
+.nav-brand span { color: var(--ash); font-weight: 400; }
+.search-wrap {
+  flex: 1; max-width: 420px;
+  position: relative;
+}
+.search-wrap input {
+  width: 100%;
+  background: #1a1a25; border: 1px solid #2a2a38; border-radius: 4px;
+  color: var(--paper); font-family: 'Space Mono', monospace; font-size: 12px;
+  padding: 8px 12px 8px 36px; outline: none;
+  transition: border-color 0.2s;
+}
+.search-wrap input:focus { border-color: var(--accent); }
+.search-wrap input::placeholder { color: var(--smoke); }
+.search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--smoke); font-size: 14px; pointer-events: none;
+}
+.nav-filters {
+  display: flex; gap: 4px; margin-left: auto;
+}
+.filter-btn {
+  background: none; border: 1px solid #2a2a38; border-radius: 3px;
+  color: var(--ash); font-family: 'Space Mono', monospace; font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 5px 10px; cursor: pointer; transition: all 0.15s;
+}
+.filter-btn:hover { border-color: var(--ash); color: var(--paper); }
+.filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+/* STATS BAR */
+.stats-bar {
+  background: #12121a;
+  border-bottom: 1px solid #1e1e2a;
+  padding: 12px 24px;
+  display: flex; gap: 32px; align-items: center;
+  font-family: 'Space Mono', monospace; font-size: 11px;
+}
+.stat { display: flex; flex-direction: column; gap: 2px; }
+.stat-n { font-size: 22px; font-weight: 700; color: var(--paper); line-height: 1; }
+.stat-l { color: var(--smoke); text-transform: uppercase; letter-spacing: 0.08em; }
+.stat-n.s-read { color: #4caf82; }
+.stat-n.s-reading { color: #d4a459; }
+.stat-n.s-unread { color: #7c8fd0; }
+.stats-divider { width: 1px; height: 36px; background: #2a2a38; }
+.sort-wrap {
+  margin-left: auto; display: flex; align-items: center; gap: 8px;
+  font-family: 'Space Mono', monospace; font-size: 10px; color: var(--smoke);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.sort-wrap select {
+  background: #1a1a25; border: 1px solid #2a2a38; border-radius: 3px;
+  color: var(--paper); font-family: 'Space Mono', monospace; font-size: 10px;
+  padding: 4px 8px; outline: none; cursor: pointer;
+}
+/* MAIN GRID */
+main { padding: 28px 24px 60px; }
+.result-info {
+  font-family: 'Space Mono', monospace; font-size: 10px;
+  color: var(--smoke); text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 16px;
+}
+.shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--spine-w));
+  gap: 20px 14px;
+}
+/* BOOK CARD */
+.book-card {
+  width: var(--spine-w);
+  cursor: pointer;
+  position: relative;
+}
+.cover-wrap {
+  width: var(--spine-w);
+  height: var(--spine-h);
+  position: relative;
+  border-radius: 3px 6px 6px 3px;
+  overflow: hidden;
+  box-shadow: -2px 2px 0 #000, 3px 6px 18px rgba(0,0,0,0.6);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.book-card:hover .cover-wrap {
+  transform: translateY(-4px) rotate(-1deg);
+  box-shadow: -2px 2px 0 #000, 6px 14px 28px rgba(0,0,0,0.7);
+}
+.cover-img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.cover-placeholder {
+  width: 100%; height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 12px;
+  text-align: center;
+  position: relative;
+}
+.cover-placeholder .ph-title {
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: 13px; line-height: 1.35;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 8px;
+  z-index: 1;
+}
+.cover-placeholder .ph-author {
+  font-family: 'Space Mono', monospace; font-size: 8px;
+  color: rgba(255,255,255,0.55);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  z-index: 1;
+}
+/* spine line */
+.cover-wrap::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 6px;
+  background: rgba(0,0,0,0.35);
+  z-index: 2;
+}
+/* status badge */
+.status-badge {
+  position: absolute; top: 6px; right: 6px; z-index: 3;
+  width: 8px; height: 8px; border-radius: 50%;
+  border: 1.5px solid rgba(0,0,0,0.4);
+}
+.status-badge.read { background: #4caf82; }
+.status-badge.reading { background: #d4a459; }
+.status-badge.unread { background: rgba(255,255,255,0.2); }
+/* reread badge */
+.reread-badge {
+  position: absolute; top: 6px; left: 12px; z-index: 3;
+  background: var(--accent); color: #fff;
+  font-family: 'Space Mono', monospace; font-size: 7px;
+  padding: 2px 4px; border-radius: 2px;
+}
+/* rating stars */
+.rating-wrap {
+  position: absolute; bottom: 6px; left: 0; right: 0;
+  display: flex; justify-content: center; gap: 2px; z-index: 3;
+}
+.star {
+  font-size: 9px; cursor: pointer;
+  color: rgba(255,255,255,0.2);
+  transition: color 0.1s;
+  line-height: 1;
+}
+.star.filled { color: #f0c040; }
+.star:hover, .star:hover ~ .star { color: rgba(255,255,255,0.2); }
+.rating-wrap:hover .star { color: #f0c040; }
+.rating-wrap .star:hover ~ .star { color: rgba(255,255,255,0.2) !important; }
+/* book meta below card */
+.book-meta {
+  padding: 8px 2px 0;
+}
+.book-title-sm {
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: 12px; line-height: 1.3;
+  color: var(--ash);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* MODAL */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: #16161f;
+  border: 1px solid #2a2a38;
+  border-radius: 8px;
+  max-width: 700px; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.modal-header {
+  display: flex; gap: 24px; padding: 28px;
+  border-bottom: 1px solid #1e1e2a;
+}
+.modal-cover {
+  width: 100px; height: 150px; flex-shrink: 0;
+  border-radius: 2px 5px 5px 2px;
+  object-fit: cover;
+  box-shadow: -2px 2px 0 #000, 3px 6px 12px rgba(0,0,0,0.5);
+}
+.modal-cover-ph {
+  width: 100px; height: 150px; flex-shrink: 0;
+  border-radius: 2px 5px 5px 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: 11px; color: rgba(255,255,255,0.7);
+  text-align: center; padding: 8px;
+  box-shadow: -2px 2px 0 #000, 3px 6px 12px rgba(0,0,0,0.5);
+}
+.modal-title-block { flex: 1; min-width: 0; }
+.modal-title {
+  font-size: 26px; font-style: italic; line-height: 1.2;
+  margin-bottom: 6px; color: var(--paper);
+}
+.modal-author {
+  font-family: 'Space Mono', monospace; font-size: 11px;
+  color: var(--smoke); text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 16px;
+}
+.modal-status-row {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+.status-pill {
+  font-family: 'Space Mono', monospace; font-size: 10px;
+  padding: 4px 10px; border-radius: 20px; text-transform: uppercase;
+  letter-spacing: 0.06em; font-weight: 700; cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.15s;
+}
+.status-pill.read { background: rgba(74,176,120,0.15); color: #4caf82; border-color: rgba(74,176,120,0.3); }
+.status-pill.reading { background: rgba(212,164,89,0.15); color: #d4a459; border-color: rgba(212,164,89,0.3); }
+.status-pill.unread { background: rgba(124,143,208,0.1); color: #7c8fd0; border-color: rgba(124,143,208,0.2); }
+.status-pill:hover { opacity: 0.75; }
+.reread-count {
+  font-family: 'Space Mono', monospace; font-size: 10px;
+  color: var(--accent); background: rgba(196,120,58,0.1);
+  border: 1px solid rgba(196,120,58,0.25);
+  border-radius: 20px; padding: 4px 10px;
+}
+.modal-body { padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; }
+.field-group label {
+  display: block;
+  font-family: 'Space Mono', monospace; font-size: 10px;
+  color: var(--smoke); text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+.field-group textarea, .field-group input[type=text] {
+  width: 100%;
+  background: #1a1a25; border: 1px solid #2a2a38; border-radius: 4px;
+  color: var(--paper); font-family: 'EB Garamond', serif; font-size: 15px;
+  padding: 10px 12px; outline: none; resize: vertical;
+  transition: border-color 0.2s; line-height: 1.5;
+}
+.field-group textarea:focus, .field-group input[type=text]:focus {
+  border-color: var(--accent);
+}
+.dates-row { display: flex; gap: 16px; }
+.dates-row .field-group { flex: 1; }
+.modal-stars { display: flex; gap: 4px; }
+.modal-star {
+  font-size: 22px; cursor: pointer;
+  color: rgba(255,255,255,0.15);
+  transition: color 0.1s;
+}
+.modal-star.filled { color: #f0c040; }
+.modal-footer {
+  padding: 16px 28px;
+  border-top: 1px solid #1e1e2a;
+  display: flex; gap: 10px; justify-content: flex-end;
+}
+.btn {
+  font-family: 'Space Mono', monospace; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  padding: 9px 18px; border-radius: 4px; cursor: pointer;
+  border: 1px solid; transition: all 0.15s;
+}
+.btn-ghost {
+  background: none; border-color: #2a2a38; color: var(--ash);
+}
+.btn-ghost:hover { border-color: var(--ash); color: var(--paper); }
+.btn-primary {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.btn-primary:hover { opacity: 0.85; }
+.btn-reread {
+  background: none; border-color: rgba(196,120,58,0.4); color: var(--accent);
+}
+.btn-reread:hover { background: rgba(196,120,58,0.1); }
+.btn-danger {
+  background: none; border-color: rgba(200,60,60,0.3); color: #c84444;
+  margin-right: auto;
+}
+.btn-danger:hover { background: rgba(200,60,60,0.1); }
+/* ADD BOOK */
+.add-btn-wrap {
+  position: fixed; bottom: 28px; right: 28px; z-index: 150;
+}
+.add-btn {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent); border: none; cursor: pointer;
+  color: #fff; font-size: 24px;
+  box-shadow: 0 4px 18px rgba(196,120,58,0.4);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.add-btn:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(196,120,58,0.5); }
+/* COVER PALETTE - procedural colors based on title hash */
+.ph-0 { background: linear-gradient(145deg, #1a2a4a, #2d1a4a); }
+.ph-1 { background: linear-gradient(145deg, #2a1a1a, #4a1a2a); }
+.ph-2 { background: linear-gradient(145deg, #1a2a1a, #1a3a2a); }
+.ph-3 { background: linear-gradient(145deg, #2a2a1a, #3a2a0a); }
+.ph-4 { background: linear-gradient(145deg, #1a1a3a, #0a1a4a); }
+.ph-5 { background: linear-gradient(145deg, #2a1a2a, #1a0a3a); }
+.ph-6 { background: linear-gradient(145deg, #1a3030, #0a2030); }
+.ph-7 { background: linear-gradient(145deg, #302010, #201000); }
+.ph-8 { background: linear-gradient(145deg, #201a30, #100a28); }
+.ph-9 { background: linear-gradient(145deg, #0a2020, #0a3030); }
+/* EMPTY STATE */
+.empty {
+  grid-column: 1/-1;
+  padding: 80px 0;
+  text-align: center;
+  color: var(--smoke);
+  font-style: italic;
+  font-size: 18px;
+}
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb { background: #2a2a38; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">arcave <span>· library</span></div>
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="searchInput" placeholder="Search title, author…">
+  </div>
+  <div class="nav-filters">
+    <button class="filter-btn active" data-filter="all">All</button>
+    <button class="filter-btn" data-filter="read">Read</button>
+    <button class="filter-btn" data-filter="reading">Reading</button>
+    <button class="filter-btn" data-filter="unread">Unread</button>
+  </div>
+</nav>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-n" id="statTotal">0</div><div class="stat-l">Total</div></div>
+  <div class="stats-divider"></div>
+  <div class="stat"><div class="stat-n s-read" id="statRead">0</div><div class="stat-l">Read</div></div>
+  <div class="stat"><div class="stat-n s-reading" id="statReading">0</div><div class="stat-l">Reading</div></div>
+  <div class="stat"><div class="stat-n s-unread" id="statUnread">0</div><div class="stat-l">To read</div></div>
+  <div class="stats-divider"></div>
+  <div class="sort-wrap">
+    Sort:
+    <select id="sortSelect">
+      <option value="author">Author A–Z</option>
+      <option value="title">Title A–Z</option>
+      <option value="status">Status</option>
+      <option value="rating">Rating</option>
+      <option value="finish">Date read</option>
+    </select>
+  </div>
+</div>
+
+<main>
+  <div class="result-info" id="resultInfo"></div>
+  <div class="shelf-grid" id="shelfGrid"></div>
+</main>
+
+<!-- ADD BUTTON -->
+<div class="add-btn-wrap">
+  <button class="add-btn" id="addBtn" title="Add a book">+</button>
+</div>
+
+<!-- DETAIL/EDIT MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header" id="modalHeader"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<script>
+const PALETTE = ['ph-0','ph-1','ph-2','ph-3','ph-4','ph-5','ph-6','ph-7','ph-8','ph-9'];
+function hashColor(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) | 0;
+  return PALETTE[Math.abs(h) % PALETTE.length];
+}
+
+// INITIAL DATA
+const SEED = [{"author":"ADAM SILVERA","title":"THEY BOTH DIE AT THE END","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"ADAM SILVERA","title":"INFINITY SON","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"ADAM SILVERA","title":"History Is All You Left Me","start":"18.2.18","finish":"19.2.18","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Albert Camus","title":"The Rebel","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Albert Camus","title":"The First Man","start":"03.09.2021","finish":"","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Albert Camus","title":"The Stranger","start":"01.07.2021","finish":"04.07.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Albert Camus","title":"A happy death","start":"08.02.2024","finish":"12.02.2024","notesReading":"confusion, don't like mersault hes very sexist and owning women vibes.","notesAfter":"he died peacefully","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"ALEX MICHAELIDES","title":"The Silent Patient","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"ALEXANDRA BRACKEN","title":"In The After Light","start":"11.07.20","finish":"13.07.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"ALEXANDRA BRACKEN","title":"Never Fade","start":"24.11.19","finish":"25.11.19","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"ALEXANDRA BRACKEN","title":"The Darkest Minds","start":"27.11.19","finish":"30.11.19","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"ALEXANDRA BRACKEN","title":"The Darkest Legacy","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Alexievich","title":"Chernobyl","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Alice Osemen","title":"I Was Born For This","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Alice Osemen","title":"Solitaire","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Allan and Barbara pease","title":"the definitive book of body language","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"ANDRE ACIMAN","title":"CALL ME BY YOUE NAME","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Antoine saint Exupery","title":"The little Prince","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Aravind Adiga","title":"The White Tiger","start":"11.09.20","finish":"14.09.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Aristotle","title":"The Politics","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Audre Lorde","title":"Your Silence Will Not Protect You","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Adolf Hitler","title":"Mein Kampf","start":"28.01.21","finish":"28/01/2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Andrew Solomon","title":"The Noonday Demon: An Atlas of Depression","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Anna Lembke","title":"Dopamine Nation: Finding Balance in the Age of Indulgence","start":"25/12/2022","finish":"","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"B. Catling","title":"The Vorrh","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Bakhtyar Ali","title":"I Started At The Night Of The City","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"beal sehee","title":"i want to die but i want to eat tteokbokki","start":"05.08.2022","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Becky Albertalli","title":"Leah On the Offbeat","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Becky Albertalli","title":"The Homosapiens Agenda","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"becky albertalli","title":"The Upside of Unrequited (Simonverse, #2)","start":"-","finish":"2019-01-01 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Behrouy Boochani","title":"No Friend But The Mountain","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Bert Easton Ellias","title":"American Pyscho","start":"22.12.2020","finish":"22.12.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"BETSY BYARS","title":"THE MIDNIGHT FOX","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Bora Chung","title":"Cursed Bunny","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Bella Mackie","title":"How to Kill Your Family","start":"-","finish":"26/10/2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Bora Chung","title":"Cursed Bunny","start":"-","finish":"30/12/2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Bruce D. Perry","title":"What Happened To You?: Conversations on Trauma, Resilience, and Healing","start":"-","finish":"15/10/2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Coco Mellors","title":"Blue Sisters","start":"02.09.2024","finish":"13.09.2024","notesReading":"Enjoyed.","notesAfter":"I actaully loved it. Very cute book about siblings \nand sisterhood.","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Choman Hardi","title":"Whispering Walls","start":"07.08.2023","finish":"","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"C.G.Jung","title":"the red book","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"CAITLIN MORAN","title":"HOW TO BUILD A GIRL","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"carsin mccullers","title":"The Heart Is a Lonely Hunter","start":"3.10.21","finish":"9.10.21","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Catherine Alene","title":"The Sky Between You And Me","start":"29.10.2017","finish":"31.10.2019","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Catherine cookson","title":"The Girl","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"CATHERINE STORR","title":"MARIANNE DREAMS","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Cecelia Ahern","title":"Love Rosie","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"cervantes","title":"Don Quixote","start":"1.9.22","finish":"13.9.22","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Charles Bukowski","title":"Hollywood","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Charles Bukowski","title":"Post Office","start":"21.06.2021","finish":"21.06.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Charles Dickena","title":"Hard Times","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Charles Dickens","title":"A Tale Of Two Cities","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Charles Dickens","title":"Barnaby Rudge and Master Humphrey's clock","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Charles Dickens","title":"Domby and son II","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Charles Dickens","title":"Domby and son I","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"CHARLOTTE BRONTE","title":"Jane Eyre","start":"5.5.20","finish":"7.5.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"cho nam joo","title":"Kim Jiyoung, Born 1982","start":"12.11.22","finish":"13.11.22","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Claire North","title":"The End Of The Day","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Courtney Summers","title":"sadie","start":"20.10.19","finish":"20.10.19","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Courtney Summers","title":"the project","start":"02.03.21","finish":"07.03.21","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Cassandra Clare","title":"City of Bones (The Mortal Instruments, #1)","start":"","finish":"2020-02-10 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Cecil Castellucci","title":"Boy Proof","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Cecile Pin","title":"Wandering Souls","start":"","finish":"29/06/2023","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"C.L.Clark","title":"Ambessa: Chosen Of The Wolf","start":"07.04.2025","finish":"27.04.2025","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Colleen Hoover","title":"It Ends with Us (It Ends with Us, #1)","start":"-","finish":"2019-08-04 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Colleen Hoover","title":"It Starts with Us (It Ends with Us, #2)","start":"-","finish":"24/10/2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Colleen Hoover","title":"Verity","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Colleen Hoover","title":"never never #1 #2 #3","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Dale carnegie","title":"how to win friends and influence people","start":"-","finish":"2020-12-04 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Dan Brown","title":"Inferno","start":"30.05.2021","finish":"19.06.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"dan kieran and tom hodkinson","title":"the book of idle pleasures","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"dante alighieri","title":"the divine comedy","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"dante alighieri","title":"the inferno of dante","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Dave Eggers","title":"The Circle","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"David eagleman","title":"the brain","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"DAVID LEVITHAN","title":"EVERYDAY","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"DAVID OWEN","title":"ALL THE LONELY PEOPLE","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Dean a. haycock","title":"Minderous Minds","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Descretes","title":"Key Philosophical Writings","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Descretes","title":"A Discourse On Method","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"don miguel ruiz","title":"The Four Agreements","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"donna tart","title":"The Secret History","start":"16.1.23","finish":"17.1.23","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"donna tart","title":"The Goldfinch","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"donna tart","title":"Little Friend","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Douglas Adams","title":"The Ultimate Hitchhiker's Guide To The Galaxy","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Daniel J. Siegel","title":"The Whole-Brain Child: Revolutionary Strategies to Nurture Your Child's Developing Mind","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"David Sheff","title":"Beautiful Boy","start":"09.03.24","finish":"","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"David Nicholos","title":"One Day","start":"03.04.24","finish":"07.04.2024","notesReading":"stupid book, i dont understanf the hype.","notesAfter":"Em dies for no reason. still dont get the hype. didnt care for the book at all.","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"E. Lockhart","title":"We Were Lairs","start":"27.Jun.19","finish":"28.Jun.19","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"E. Lockhart","title":"Family Of Lairs","start":"2023-12-22 00:00:00","finish":"","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"E. Lockhart","title":"GENUINE FRAUD","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"E. Lockhart","title":"Fly on the Wall: How One Girl Saw Everything","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Emily Austin","title":"Everyone in This Room Will Someday Be Dead","start":"08.07.2024","finish":"15.07.2024","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"EDGAR ALLAN PEO","title":"Edgar Allan Poe Collection","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Edward St Aubyn","title":"Patrick Melrose","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Elif Shafak","title":"Honor","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Elif Shafak","title":"The Forty Rules of Love","start":"22.Aug.2021","finish":"27.Aug.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"ELIYABETH DAY","title":"HOW TO FAIL","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Elizabeth Gilbert","title":"Eat Prey Love","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"ELLEN DEGENERAS","title":"SERIOUSLY ......KIDDING","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"EMILY BRONTE","title":"Wuthering Hieghts","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"EMILY DICKINSON","title":"The Poetry Of Emily Dickinson","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"EREN LANGE","title":"DEAD ENDS","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"ERIC LINDERSTORM","title":"NOT IF I SEE YOU FIRST","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"ERIC LINDERSTORM","title":"BEEN HERE ALL ALONG","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Eric Lindstrom","title":"A Tragic Kind Of Wonderful","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Ernest Cline","title":"Ready Player One (Ready Player One, #1)","start":"-","finish":"2021-07-29 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"F.SCOTT","title":"THE GREAT GATSBY","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Frank Wilczek","title":"fundamentals ten keys to reality","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Franz Kafka","title":"The Complete Stories","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Franz Kafka","title":"Metamophosis And Other Stories","start":"01.01.2022","finish":"28/01/2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Franz Kafka","title":"The Castle","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Franz Kafka","title":"The Trial","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Franz Kafka","title":"Amerika","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Friedrich Nierzche","title":"Beyond Good And Evil","start":"19.08.2021","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Friedrich Nierzche","title":"God Is Dead","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Friedrich Nierzche","title":"The Birth Of Tragedy And The Case Of Wagner","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Friedrich Nierzche","title":"Thus Spoke Zarathustra","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Friedrich Nierzche","title":"On Genealogy Of Morals","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"fyoder dostoevsky","title":"Devils","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Fyodor Dostoyevsky","title":"Crime And Punishment","start":"30.4.2024","finish":"","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Fyodor Dostoyevsky","title":"Notes From Underground And The Double","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Fyodor Dostoyevsky","title":"White Nights","start":"26.02.2025","finish":"27.02.2025","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Fredrik Backman","title":"And Every Morning the Way Home Gets Longer and Longer","start":"-","finish":"13/07/2023","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Fredrik Backman","title":"Beartown (Beartown, #1)","start":"-","finish":"2023-11-07 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Fredrik Backman","title":"Anxious People","start":"-","finish":"2023-08-04 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"George R.R. Martin","title":"The knight Of The Even Kingdoms","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"George R.R. Martin","title":"Fire and Blood","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"George R.R. Martin","title":"The Rise of the Dragon","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Gavin Extence","title":"The Universe Verses Alex Woods","start":"07.02.2018","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"GAYLE FORMAN","title":"If I Stay","start":"29.09.17","finish":"30.09.17","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"GAYLE FORMAN","title":"Where She Went","start":"30.09.17","finish":"1.10.17","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"GAYLE FORMEN","title":"I WAS HERE","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"GAYLE FORMEN","title":"I HAVE LOST MY WAY","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"GENKI KAWAMURA","title":"If Cats Disappeared from the World","start":"15.12.22","finish":"21.12.22","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"George Saunders","title":"A Swim In A Pond In The Rain","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"George Orwell","title":"Orwell Essays","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"George Orwell","title":"Animal farm","start":"10.23","finish":"11.2023 with uni","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"George Orwell","title":"1984","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"GILLIAN FLYNN","title":"SHARP OBJECTS","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"GILLIAN FLYNN","title":"GONE GIRL","start":"2020-01-01 00:00:00","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Gramham norton","title":"home strech","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Gramham norton","title":"a keeper","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Gary Keller","title":"The One Thing: The Surprisingly Simple Truth Behind Extraordinary Results","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"1Q84/1","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"1Q84/2","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"1Q84/3","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"Men Without Women","start":"11.08.2021","finish":"18.08.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"Birthday Stories","start":"25.11.2021","finish":"12.12.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"Hard-Boiled Wonderland and the End Of The World","start":"03.11.2022","finish":"05.11.2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"Dance Dance Dance","start":"13.10.2021","finish":"26.10.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"The Wind Up Bird Chronicle","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"Underground","start":"15.09.2021","finish":"19.09.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"Kafka On The Shore","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"First Singular Person","start":"02.02.2022","finish":"11.02.2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"Killing Commendatore","start":"21.03,2023","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"Desire","start":"19.05.2023","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"Novelist As A Vocation","start":"08.03.2023","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"Colorless Tsukuru Tazaki","start":"01.08.2021","finish":"04.08.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"AFTER DARK","start":"17.07.2021","finish":"19.07.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"The strange Library","start":"02.12.2022","finish":"02.12.2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"The Elephant Vanishes","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"What I Talk About When I Talk About Running","start":"28.07.2021","finish":"29.07.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"South Of The Border, West Of The Sun","start":"26.11.2022","finish":"01.12.2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"Blind Willow, Sleeping Woman","start":"06.10.2022","finish":"07.10.2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Haruki Murukami","title":"Norwegian Wood","start":"26.10.2021","finish":"11.11.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"harvard tiny book","title":"happiness","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"harvard tiny book","title":"empathy","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"harvard tiny book","title":"dealing with difficult people","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Heather Christle","title":"The Crying Book","start":"10.12.2022","finish":"22.12.2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Halsey","title":"I would leave me if I could","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Hank Green","title":"A beatifully foolish endeavor","start":"01.04.21","finish":"14.04.21","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Hank Green","title":"an absolutely remarkable things","start":"9.7.19","finish":"11.7.2019","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Hannah Arenat","title":"The origins of totalitartisim","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Hannah Fry","title":"Hello World.","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"hanya yanagihara","title":"A Little Life","start":"24.07.2023","finish":"07.08.2023","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Harper Lee","title":"To Kill A Mockinbird","start":"07.04.2019","finish":"28.3.2029","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"HENRY JAMES","title":"The Portrait Of A Lady","start":"04.02.2025","finish":"25.02.2025","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Hermann Hesse","title":"Demain","start":"14.02.2023","finish":"","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Herman Melville","title":"Moby-Dick or, The Whale","start":"2.1.20","finish":"4.1.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Han Kang","title":"Human Acts","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Henry David Thoreau","title":"Walden","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Hitomi Kanehara","title":"Snakes And Earrings","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Hunter S. Thompson","title":"Hells Angels","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Holly Jackson","title":"A Good Girl's Guide To Murder #1","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Holly Jackson","title":"As Good As Dead #2","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Holly Jackson","title":"Good Girl, Bad Blood #3","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"IAIN S. THOMAN","title":"I WROTE THIS FOR YOU JUST THE WORDS","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"ian crofton and jeramy blcak","title":"big history","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Irvin D. Yalom","title":"When Nietzche Wept","start":"21.04.2021","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Iain Reid","title":"I'm Thinking of Ending Things","start":"25/07/2023","finish":"25.07.2023","notesReading":"extremely confused","notesAfter":"very fucked up but enjoyed.","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"JAMES DASHNER","title":"THE EYE OF THE MINDS","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JAMES DASHNER","title":"THE RULE OF THOUGHTS","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JAMES DASHNER","title":"THE GAME OF LIVES","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JAMES DASHNER","title":"THE MAZE RUNNER","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JAMES DASHNER","title":"THE DEATH CURE","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JAMES DASHNER","title":"THE KILL ORDER","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JAMES DASHNER","title":"THE FEVER CODE","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JOEY GRACEFFA","title":"Children Of Eden","start":"09.10.17","finish":"11.10.17","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"JOEY GRACEFFA","title":"Elites Of Eden","start":"28.01.18","finish":"30.01.18","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"JOEY GRACEFFA","title":"Rebels Of Eden","start":"19","finish":"19","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"John Green","title":"Let It Snow","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"John Green","title":"An Abundance Of Kathrines","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"John Green","title":"The Fault In Our Stars","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"John Green","title":"Will Grayson Will Grayson","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"John Green","title":"Paper Towns","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"John Green","title":"Looking For Alaska","start":"20.06.2017","finish":"20.06.2017","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"John Green","title":"Turtles All The Way Down","start":"09.12.2017","finish":"15.12.2017","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"John Green","title":"The Anthroponce Reviewed","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"John Steinbeck","title":"The Grapes of Wrath","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Jane Austen","title":"Persuasion","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"jordan b. peterson","title":"beyond order","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"jordan b. peterson","title":"12 rules for life","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JANE AUSTEN","title":"Pride And Prejudice","start":"7.09.20","finish":"9.09.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"J.D Salinger","title":"The Catcher In The Rye","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"J.K.ROWLING","title":"FANTASTIC BEASTS","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JAY ASHER","title":"13 REASONS WHY","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JENNIFER NIVEN","title":"HOLDING UP THE UNIVERSE","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Jennifer Niven","title":"All The Bright Places","start":"17.04.2018","finish":"20.04.2018","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Jim Chapman","title":"147 Things","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Joe keohane","title":"the power of strangers","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Joel David bond","title":"as large as your spirit","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"johann hard","title":"lost connections","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JOHN BOYNE","title":"STAY WHERE YOU ARE","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"john gribbin","title":"in search of schrödinger's cat","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"john guy","title":"mary of scots","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JOJO MYERS","title":"Me Before You","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JON KRAKAUER","title":"Into The Wild","start":"08.04.2020","finish":"12.04.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"jon ronson","title":"the psychopath test","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Jonathan Self","title":"Selfabuse","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Joseph Boyden","title":"The Orenda","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Joseph Murphy","title":"the power of your subconscious mind","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Josh Malerman","title":"Bird Box (Bird Box, #1)","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Jostein Gaarder","title":"Sophie's World","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"JUDY SHEEHAN","title":"I Woke Up Dead at the Mall","start":"-","finish":"2017-04-10 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"JULIA BARN","title":"ARTHUR AND GOERGE","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Julia Walton","title":"Words On Bathroom Walls","start":"05.10.2017","finish":"08.10.2017","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Johann Hari","title":"Lost Connections: Uncovering the Real Causes of Depression - and the Unexpected Solutions","start":"-","finish":"28/06/2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Jon Krakauer","title":"Into the Wild","start":"-","finish":"2020-12-04 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"KASS MORGAN","title":"The 100","start":"25.7.20","finish":"25.7.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"KASS MORGAN","title":"The 100 The Rebellian","start":"28.7.20","finish":"28.7.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"KASS MORGAN","title":"The 100 Homecomin","start":"28.7.20","finish":"28.7.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"KASS MORGAN","title":"The 100 Day 21","start":"26.7.20","finish":"26.7.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"KATHERINE RUNDELL","title":"ROOFTOPPERS","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Kathleen Glassgow","title":"Girl In Pieces","start":"14.03.2019","finish":"15.03.2019","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Kathlian","title":"Litterall","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"KEN KESEY","title":"One Flew Over the Cuckoo's Nest","start":"19.03.22","finish":"19.03.22","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"kenneth logan","title":"True Letters From A Fictional Life","start":"20.11.17","finish":"22.11.17","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"KRISTOPHER JANSMA","title":"Why We Came To The City","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Kahlil Gibran","title":"The Prophet","start":"-","finish":"26/12/2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Karen V. kukil","title":"The Unabridged Journals Of Sylvia Plath","start":"27.01.2024","finish":"","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"LENA DUNHAM","title":"NOT THAT KIND OF GIRL","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Leo Tolstoy","title":"childhood, boyhood, youth","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Leo Tolstoy","title":"Anna Karenina","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Leo tolstoy","title":"War and peace","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Leigh Bardugo","title":"Ninth House (Alex Stern, #1)","start":"-","finish":"30/07/2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"LIEGH BURDO","title":"Six Of Crows","start":"05.07.21","finish":"08.07.21","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"LIEGH BURDO","title":"Crooked Kingdom","start":"08.07.21","finish":"11.07.21","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Lily Collins","title":"Unfiltered","start":"19.05.2019","finish":"20.05.2019","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"lois lowry","title":"The Giver","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"louisa may alcot","title":"Little Women","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Lisa Genova","title":"Still Alice","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"M.L. Rio","title":"If We Were Villains","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"marx and engels","title":"the communist manifesto","start":"","finish":"","notesReading":"confused so far","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"M.E THOMAS","title":"confessions of a sociopath","start":"1.11.20","finish":"7.11.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Madeline miller","title":"The song  of achillies","start":"27.09.2021","finish":"03.10.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Malcolm Gladwell","title":"Talking to Strangers: What We Should Know About the People","start":"-","finish":"2021-02-07 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Margaret atawood","title":"the testaments","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"MARGRET ATTAWOOD","title":"The Handmaid's Tale","start":"04.04.2020","finish":"05.04.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Marieke Nijkamp","title":"Before I Let It Go","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Marieke Nijkamp","title":"This Is Where It Ends","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mark mansion","title":"Everything Is fucked","start":"15.12.19","finish":"19.12.19","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Markus zusak","title":"I Am Messenger","start":"05.009.2019","finish":"06.09.2019","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Markus zusak","title":"The Book Thief","start":"26.05.2019","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Markus zusak","title":"Bridge Of Clay","start":"24.06.2020","finish":"26.04.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Megan Mirand","title":"Come find me","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mellissa Albert","title":"The Hazel Wood","start":"26.5.19","finish":"4.5.19","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Mellissa Albert","title":"The Night Country (The Hazel Wood, #2)","start":"9.1.20","finish":"11.1.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"MG Harris","title":"Ice Shock","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mieko Kawakami","title":"Breasts And Eggs","start":"26.04.23","finish":"07.05.23","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Mieko Kawakami","title":"All the Lovers in the Night","start":"2024-06-26 00:00:00","finish":"2024-07-05 00:00:00","notesReading":"i think fuyoko think better\nof hijiri then she is like i think \nshe is idolising her. \nits idiotic, kinda. but also\n very realistic.\n we as humans idolise people \nwe like.","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Mieko Kawakami","title":"Heaven","start":"9.12.2022","finish":"9.12.2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Min Jin Lee","title":"Pachinko","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mika waltari","title":"The Egyption","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Michelle zauner","title":"crying in h Mart","start":"09.01.2023","finish":"26.01.2024","notesReading":"I read it near dads passing. Wrong time","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"MIKKI DAUGHTRY/RACHEL LIPPINCOTT/ TOBAIS LACONIS","title":"Five Feet Apart","start":"15.03.19","finish":"19.03.19","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"milan kundera","title":"The Unbearable Lightness of Being","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mitch albom","title":"the time keeper","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mitch albom","title":"the next person you meet in heaven","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mitch albom","title":"for one more day","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mitch albom","title":"have a little faith","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mitch albom","title":"the five people you meet in heaven","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mitch Albom","title":"The stranger in the life bout","start":"23.05.2022","finish":"19.06.2022.","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Mittlefehldt","title":"What Makes Us","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mollz Prentiss","title":"Tuesday Nights In 1990","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Moskowitz/helgeson","title":"Gena/Finn","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Miguel de Cervantes Saavedra","title":"Don Quixote","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Michael J. Sandel","title":"Justice: What's the Right Thing to Do?","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mary H.K. Choi","title":"Yolk","start":"-","finish":"2022-03-11 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Mary Pipher","title":"Letters to a Young Therapist","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Matt Haig","title":"How to Stop Time","start":"-","finish":"-","notesReading":"in 9th grade from bonds class.","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Matt Sumell","title":"Making Nice: A Novel in Stories","start":"-","finish":"26/07/2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Murphy","title":"Puddin'","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Mizuki Tsujimura","title":"Lost Souls Meet Under The Moon","start":"16.06.2025","finish":"","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Natalie Haynes","title":"A thousand ships","start":"14.02.2024","finish":"04.03.2024","notesReading":"I am loving it so farrr.","notesAfter":"took me an eternity to finish but fucking loved it,","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Natalie Haynes","title":"Pandora's Jar: Women in the Greek Myths","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"N.H.Kleinbaum","title":"dead poets society","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Ned Vizzini","title":"its kind of a funny story","start":"2019","finish":"2019","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Neil Gaiman","title":"Norse Mythology","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Neil Gaimen","title":"Neverwhere","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Nicholas epley","title":"mind wise","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"NICOLA YOON","title":"THE SUN IS ALSO A STARR","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"NICOLA YOON","title":"EVERYTHING EVERYTHING","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Nigel Warburton","title":"A Little History Od Philosophy","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"NINA LACOUR","title":"We Are Okay","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Nathaniel Hawthorne","title":"The Scarlet Letter","start":"24/12/2020","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Nigel C. Benson","title":"The Psychology Book: Big Ideas Simply Explained","start":"2021-11-01 00:00:00","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Noah J. Goldstein","title":"Little Book Of Yes","start":"29/01/2021","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"NOEL LANGLEY","title":"THE LAND OF GREEN","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Natasha Preston","title":"Silence (Silence, #1)","start":"20/04/2023","finish":"maybe i read it in 2017","notesReading":"","notesAfter":"i love this book, one of my favorites","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"ocean vuong","title":"On we're briefly gorgeous","start":"27.02.2025","finish":"04.03.2025","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Oscar Wilde","title":"The Picture Of Dorian Grey","start":"22.09.2022","finish":"08.20.2022","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"osamu dazai","title":"No Longer Human","start":"16.10.22","finish":"22.10.22","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"osamu dazai","title":"No Longer Human comic","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"osamu dazai","title":"The Setting Sun","start":"15.12.22","finish":"15.12.22","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Osamu Dazai","title":"Self-Portriats","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Patrick Ness","title":"The knife of never letting go","start":"20.07.2019","finish":"25.07.2019","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Patrick Ness","title":"The ask and the answer","start":"13.08.2019","finish":"15.08.2019","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Patrick Ness","title":"Monsters of men","start":"16.08.2019","finish":"20.08.2019","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Patrick Ness","title":"Release","start":"13.09.2017","finish":"16.09.2017","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Patrick Ness","title":"The Rest Of US Just Live Here","start":"03.12.2017","finish":"05.12.2017","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Patrick Ness","title":"Burn","start":"21.11.2020","finish":"21.11.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Patrick Ness","title":"More Then This","start":"26.02.2020","finish":"27.02.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Patrick Ness","title":"A Monster Calls","start":"15.02.2021","finish":"15.02.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Plato","title":"The Republic","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Paul Kalanithi","title":"When Breath Becomes Air","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Paulina Christensen","title":"German For Dummies","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Paulo Coelho","title":"The Alchemist","start":"-","finish":"2022-12-12 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"R.D.Laing","title":"The Divided Self","start":"22.12.2024","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"R.J.PALACIO","title":"WONDER","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"RAINBOE ROWLL","title":"FANGIRL","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"RAINBOE ROWLL","title":"ELENOR AND PARK","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Randy gage","title":"mad genuis","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"richard dawkins","title":"the selfish gene","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"RICK YANCEY","title":"The 5th Wave","start":"29.7.2020","finish":"31.07.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"RICK YANCEY","title":"The Last Star","start":"03.08.2020","finish":"03.08.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"RICK YANCEY","title":"The Infinate Sea","start":"01.08.2020","finish":"03.08.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Robert b children","title":"influence","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Robert Bloch","title":"Psycho","start":"05.09.2021","finish":"07.09.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Robert Fagles","title":"The Odessy","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Robert Greene","title":"the laws of human nature","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Robert Greene","title":"The Art of Seduction","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Robert B. Cialdini","title":"Influence: The Psychology of Persuasion","start":"-","finish":"17/07/2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Rachael Lippincott","title":"Five Feet Apart","start":"-","finish":"19/03/2019","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Richard Carlson","title":"Don't Sweat the Small Stuff ... and It's All Small Stuff: Simple Ways to Keep the Little Things From Taking Over Your Life","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Rufener","title":"Where I live","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"RUSSELL HOBAN","title":"THE MOUSE AND THE CHILD","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Ryünosuke Akutagawa","title":"Hell Screen","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"ryunosuke koike","title":"the practice of not thinking","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Suzanne Collins","title":"The Hunger Games (The Hunger Games, #1)","start":"-","finish":"23/07/2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Suzanne Collins","title":"The Hunger Games Catching Fire","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Suzanne Collins","title":"The Hunger Games MockingJay","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Suzanne Collins","title":"The Ballad Of Song And Snakes","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"S.j. Watson","title":"Before I Go To Sleep","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"SARA BARNARD","title":"A QUIET KIND OF THUNDER","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Sarah Crossan Brain Cinaghan","title":"We Come Apart","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"scarlet Curtis","title":"It's Not OK to Feel Blue [and other lies]","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"shakspere","title":"Henry V","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Shanon Schuren","title":"The Virtue Of Sin","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"SHIRLEY JACKSON","title":"THE HUANTING OF HILL HOUSE","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"sigmund freud","title":"the essentials of psychoanalysis","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"sigmund freud","title":"the psychopathy of everyday life","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"sigmund freud","title":"the joke and its relation to the unconscious","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"sigmund freud","title":"civilizations and its discontents","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Simon sinek","title":"the infinite game","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"simon singh","title":"Big Bang","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"SIN","title":"Whiskey words and shovwel volume 1","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"SOPHIE KINSELLA","title":"FINDING AUDREY","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"stephan chbosky","title":"the perks of being a wallflower","start":"3.9.17","finish":"5.9.17","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Steve Toltz","title":"A Fraction Of The Whole","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"STEVEN JAMES","title":"BLUR","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"STEVEN JAMES","title":"FURY","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"STEVEN JAMES","title":"CURSE","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"STEWART FOSTER","title":"ALL THE THINGS THAT COULD GO WRONG","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"stone","title":"ecery last word","start":"15.4.16","finish":"16.4.16","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"SUE WALLMAN","title":"LYING ABOUT LAST SUMMER","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Susan can","title":"quiet","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"susie orbach","title":"in therapy","start":"20.3.20","finish":"21.3.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"SUSIN NEILSEN","title":"We Are All Made Of Molecules","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Suzanne collins","title":"The Hunger game","start":"23.07.2021","finish":"23.07.2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Sylvia Plath","title":"The Bell Jar","start":"2019-02-22 00:00:00","finish":"2019-02-23 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Stephen King","title":"The Institute","start":"_","finish":"15/01/2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Stephen King","title":"The Shining (The Shining, #1)","start":"-","finish":"21/07/2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Sunyi Dean","title":"The Book Eaters","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Sohn Won-Pyung","title":"Almond","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Sally Rooney","title":"Normal People","start":"2023-12-12 00:00:00","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Sally Rooney","title":"Beautiful World, Where Are You","start":"30/03/2023","finish":"-","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Sally Rooney","title":"Intermezzo","start":"12.02.2025","finish":"01.04.2025","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Sayaka Murata","title":"Convenience Store Woman","start":"2023-10-10 00:00:00","finish":"2023-10-10 00:00:00","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Seneca","title":"Letters from a stoic","start":"2024-03-05 00:00:00","finish":"","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Satoshi Yagisawa","title":"Days at the Morisaki Bookshop","start":"2024-06-09 00:00:00","finish":"2024-06-18 00:00:00","notesReading":"intersting book","notesAfter":"happy ending","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Shari Franke","title":"The House Of My Mother: Daughter's Quest\n for Freedom","start":"18.03.2025","finish":"20.04.2025","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"TED HUGHS","title":"IRON MAN","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"TED HUGHS","title":"IRON WOMEN","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Thomas Ericsson","title":"surrounded by psychopath","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Tiffany watt Smith","title":"the book of human emotions","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"tim marshal","title":"divided","start":"13.08.20","finish":"14.08.20","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"tim marshal","title":"prisoners of geography","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"TINA SEELIG","title":"WHAT I WISH I KNEW WHEN I WAS 20","start":"-","finish":"17/03/2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"tom gash","title":"the truth abouz why people do bad things","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"TOM HOYLE","title":"THIRTEEN","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"TOM HOYLE","title":"SURVIVOR","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"TOM HOYLE","title":"SPIDER","start":"-","finish":"21/06/2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Ted Chiang","title":"Stories of Your Life and Others","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Terry Pratchett","title":"Good Omens: The Nice and Accurate Prophecies of Agnes Nutter, Witch","start":"-","finish":"18/01/2021","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Toshikazu Kawaguchi","title":"Before the coffee gets cold","start":"2024-04-14 00:00:00","finish":"","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Ursula K. Le Guin","title":"The Ones Who Walk Away from Omelas","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Veronica Roth","title":"Divergent","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Veronica Roth","title":"Insurgernt","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Veronica Roth","title":"Alliegent","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Veronica Roth","title":"Four","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Veronica Roth","title":"Carve The Mark","start":"30.12.2017","finish":"02.01.2018","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Veronica Roth","title":"The Fates Divide","start":"07.11.2018","finish":"10.11.2018","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Veronica Roth","title":"The End And The Other Beginings","start":"09.03.2020","finish":"12.03.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Veronica Roth","title":"Chosen Ones","start":"12.12.2020","finish":"12.12.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Victor E frankl","title":"man's search for meaning","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"victor hugo","title":"Les Miserables","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Victoria Aveyard","title":"Red Queen","start":"14.12.2020","finish":"14.12.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Victoria Aveyard","title":"Glass Sword","start":"15.12.2020","finish":"15.12.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Victoria Aveyard","title":"Kings Cage","start":"17.12.2020","finish":"17.12.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Victoria Aveyard","title":"War Storm","start":"18.12.2020","finish":"19.12.2020","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"Virginia Woolf","title":"To The Lighthouse","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Virginia Woolf","title":"The Waves","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Vlamdamir Nabokov","title":"Invitation To A Beheading","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Vlamdamir Nabokov","title":"Lolita","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"V.E. Schwab","title":"The Invisible Life of Addie LaRue","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"V.E. Schwab","title":"Vicious","start":"12.05.2025","finish":"20.05.2025","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"V.E. Schwab","title":"Vengeful","start":"09.06.2025","finish":"15.06.2025","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"V.E. Schwab","title":"Gallant","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"walter tevis","title":"The queen gambit","start":"-","finish":"-","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"William Golding","title":"Lord of  the flies","start":"24.2.19","finish":"25.2.19","notesReading":"","notesAfter":"","status":"read","readCount":1,"rating":0,"cover":"","genre":""},{"author":"WILLIAM SHAKSPHERE","title":"hamlet","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"WILLIAM SHAKSPHERE","title":"RICHARD 3","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"William Sutcliffe","title":"The Wall","start":"2019-01-01 00:00:00","finish":"","notesReading":"","notesAfter":"","status":"reading","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Yasunari Kawabata","title":"Snow Country","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"yuval noah harari","title":"sapiens #1","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"yuval noah harari","title":"lessons for the 21st century #2","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"yuval noah harari","title":"homo dues #3","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Yukio Mishima","title":"Confessions of a Mask","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"Yun Dong-ju","title":"Sky, Wind, and Stars","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"ZOE WHITTALL","title":"THE BEST KIND OF PEOPLE","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""},{"author":"zora neale hurston","title":"their eyes were watching god","start":"","finish":"","notesReading":"","notesAfter":"","status":"unread","readCount":0,"rating":0,"cover":"","genre":""}];
+
+function loadBooks() {
+  try {
+    const saved = localStorage.getItem('arcave_library');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(SEED));
+}
+function saveBooks() {
+  try { localStorage.setItem('arcave_library', JSON.stringify(books)); } catch(e) {}
+}
+
+let books = loadBooks();
+let currentFilter = 'all';
+let currentSearch = '';
+let currentSort = 'author';
+let openIdx = null;
+
+// ── RENDER ──────────────────────────────────────
+function getFiltered() {
+  let list = books.map((b, i) => ({...b, _i: i}));
+  if (currentFilter !== 'all') list = list.filter(b => b.status === currentFilter);
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    list = list.filter(b =>
+      b.title.toLowerCase().includes(q) ||
+      b.author.toLowerCase().includes(q) ||
+      b.genre.toLowerCase().includes(q)
+    );
+  }
+  list.sort((a, b) => {
+    if (currentSort === 'author') return a.author.localeCompare(b.author);
+    if (currentSort === 'title') return a.title.localeCompare(b.title);
+    if (currentSort === 'rating') return b.rating - a.rating;
+    if (currentSort === 'finish') return (b.finish || '').localeCompare(a.finish || '');
+    if (currentSort === 'status') {
+      const o = {read:0, reading:1, unread:2};
+      return (o[a.status]||2) - (o[b.status]||2);
+    }
+    return 0;
+  });
+  return list;
+}
+
+function renderStats() {
+  document.getElementById('statTotal').textContent = books.length;
+  document.getElementById('statRead').textContent = books.filter(b=>b.status==='read').length;
+  document.getElementById('statReading').textContent = books.filter(b=>b.status==='reading').length;
+  document.getElementById('statUnread').textContent = books.filter(b=>b.status==='unread').length;
+}
+
+function starHtml(n, prefix='s') {
+  return [1,2,3,4,5].map(i =>
+    `<span class="star ${i<=n?'filled':''}" data-v="${i}" data-p="${prefix}">${i<=n?'★':'☆'}</span>`
+  ).join('');
+}
+
+function renderGrid() {
+  const list = getFiltered();
+  document.getElementById('resultInfo').textContent =
+    `${list.length} book${list.length!==1?'s':''} shown`;
+  const grid = document.getElementById('shelfGrid');
+  if (!list.length) {
+    grid.innerHTML = '<div class="empty">No books match your search.</div>';
+    return;
+  }
+  grid.innerHTML = list.map(b => {
+    const ph = hashColor(b.title + b.author);
+    const coverHtml = b.cover
+      ? `<img class="cover-img" src="${escHtml(b.cover)}" alt="${escHtml(b.title)}" loading="lazy" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
+      : '';
+    const phStyle = b.cover ? 'style="display:none"' : '';
+    const badge = b.readCount > 1 ? `<div class="reread-badge">×${b.readCount}</div>` : '';
+    return `<div class="book-card" data-i="${b._i}">
+  <div class="cover-wrap" style="cursor:pointer">
+    ${coverHtml}
+    <div class="cover-placeholder ${ph}" ${phStyle}>
+      <div class="ph-title">${escHtml(b.title)}</div>
+      <div class="ph-author">${escHtml(b.author)}</div>
+    </div>
+    <div class="status-badge ${b.status}"></div>
+    ${badge}
+    <div class="rating-wrap" data-i="${b._i}" onclick="event.stopPropagation()">
+      ${starHtml(b.rating,'g')}
+    </div>
+  </div>
+  <div class="book-meta">
+    <div class="book-title-sm">${escHtml(b.title)}</div>
+  </div>
+</div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── MODAL ────────────────────────────────────────
+function openModal(idx, isNew = false) {
+  openIdx = idx;
+  const b = books[idx];
+  const ph = hashColor(b.title + b.author);
+  const coverEl = b.cover
+    ? `<img class="modal-cover" src="${escHtml(b.cover)}" alt="" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
+    : '';
+  const phd = b.cover ? 'style="display:none"' : '';
+
+  document.getElementById('modalHeader').innerHTML = `
+    ${coverEl}
+    <div class="modal-cover-ph ${ph}" ${phd}>${escHtml(b.title)}</div>
+    <div class="modal-title-block">
+      <div class="modal-title">${escHtml(b.title)}</div>
+      <div class="modal-author">${escHtml(b.author)}</div>
+      <div class="modal-status-row">
+        <span class="status-pill ${b.status}" data-st="${b.status}" onclick="cycleStatus()">${b.status}</span>
+        ${b.readCount>1 ? `<span class="reread-count">Read ×${b.readCount}</span>` : ''}
+      </div>
+      <div style="margin-top:12px">
+        <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--smoke);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Rating</div>
+        <div class="modal-stars" id="modalStars">
+          ${[1,2,3,4,5].map(i=>`<span class="modal-star ${i<=b.rating?'filled':''}" data-v="${i}">★</span>`).join('')}
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="field-group">
+      <label>Cover URL (paste image link)</label>
+      <input type="text" id="mCover" value="${escHtml(b.cover)}" placeholder="https://…">
+    </div>
+    <div class="field-group">
+      <label>Genre / Tags</label>
+      <input type="text" id="mGenre" value="${escHtml(b.genre)}" placeholder="Fiction, Contemporary…">
+    </div>
+    <div class="dates-row">
+      <div class="field-group">
+        <label>Started</label>
+        <input type="text" id="mStart" value="${escHtml(b.start)}" placeholder="DD.MM.YYYY">
+      </div>
+      <div class="field-group">
+        <label>Finished</label>
+        <input type="text" id="mFinish" value="${escHtml(b.finish)}" placeholder="DD.MM.YYYY">
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Notes while reading</label>
+      <textarea id="mNotesR" rows="3" placeholder="How you felt as you read…">${escHtml(b.notesReading)}</textarea>
+    </div>
+    <div class="field-group">
+      <label>Notes after finishing</label>
+      <textarea id="mNotesA" rows="3" placeholder="Thoughts once you finished…">${escHtml(b.notesAfter)}</textarea>
+    </div>`;
+
+  document.getElementById('modalFooter').innerHTML = `
+    ${isNew ? '' : '<button class="btn btn-danger" onclick="deleteBook()">Delete</button>'}
+    ${b.status==='read' ? '<button class="btn btn-reread" onclick="markReread()">Mark Reread</button>' : ''}
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveModal()">Save</button>`;
+
+  // star click in modal
+  document.getElementById('modalStars').addEventListener('click', e => {
+    const v = parseInt(e.target.dataset.v);
+    if (!v) return;
+    books[openIdx].rating = v;
+    document.querySelectorAll('.modal-star').forEach((s,i) => {
+      s.classList.toggle('filled', i < v);
+    });
+  });
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  openIdx = null;
+}
+
+function cycleStatus() {
+  if (openIdx === null) return;
+  const order = ['unread','reading','read'];
+  const cur = books[openIdx].status;
+  books[openIdx].status = order[(order.indexOf(cur)+1)%3];
+  const pill = document.querySelector('.status-pill');
+  pill.textContent = books[openIdx].status;
+  pill.className = 'status-pill ' + books[openIdx].status;
+  pill.dataset.st = books[openIdx].status;
+}
+
+function saveModal() {
+  if (openIdx === null) return;
+  const b = books[openIdx];
+  b.cover = document.getElementById('mCover').value.trim();
+  b.genre = document.getElementById('mGenre').value.trim();
+  b.start = document.getElementById('mStart').value.trim();
+  b.finish = document.getElementById('mFinish').value.trim();
+  b.notesReading = document.getElementById('mNotesR').value.trim();
+  b.notesAfter = document.getElementById('mNotesA').value.trim();
+  // update status from finish date
+  if (b.finish && b.status === 'reading') b.status = 'read';
+  saveBooks();
+  renderStats();
+  renderGrid();
+  closeModal();
+}
+
+function markReread() {
+  if (openIdx === null) return;
+  books[openIdx].readCount = (books[openIdx].readCount || 1) + 1;
+  saveBooks();
+  renderStats();
+  renderGrid();
+  closeModal();
+}
+
+function deleteBook() {
+  if (openIdx === null) return;
+  if (!confirm('Remove this book from your library?')) return;
+  books.splice(openIdx, 1);
+  saveBooks();
+  renderStats();
+  renderGrid();
+  closeModal();
+}
+
+// ── ADD BOOK ─────────────────────────────────────
+function openAddModal() {
+  // check duplicate before adding
+  const title = prompt('Book title:');
+  if (!title) return;
+  const dup = books.find(b => b.title.toLowerCase() === title.toLowerCase());
+  if (dup) {
+    alert(`"${dup.title}" is already in your library.
+You can open it and click "Mark Reread" if you've read it again.`);
+    return;
+  }
+  const author = prompt('Author:');
+  if (!author) return;
+  const newBook = {
+    author: author.trim(),
+    title: title.trim(),
+    start: '', finish: '',
+    notesReading: '', notesAfter: '',
+    status: 'unread',
+    readCount: 0, rating: 0,
+    cover: '', genre: ''
+  };
+  books.push(newBook);
+  saveBooks();
+  renderStats();
+  renderGrid();
+  openModal(books.length - 1, true);
+}
+
+// ── EVENTS ───────────────────────────────────────
+document.getElementById('shelfGrid').addEventListener('click', e => {
+  // star in grid
+  const star = e.target.closest('.star');
+  if (star) {
+    e.stopPropagation();
+    const wrap = star.closest('.rating-wrap');
+    const idx = parseInt(wrap.dataset.i);
+    const v = parseInt(star.dataset.v);
+    books[idx].rating = v;
+    saveBooks();
+    wrap.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('filled', i < v));
+    return;
+  }
+  // card click
+  const card = e.target.closest('.book-card');
+  if (card) openModal(parseInt(card.dataset.i));
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderGrid();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  currentSearch = e.target.value.trim();
+  renderGrid();
+});
+
+document.getElementById('sortSelect').addEventListener('change', e => {
+  currentSort = e.target.value;
+  renderGrid();
+});
+
+document.getElementById('addBtn').addEventListener('click', openAddModal);
+
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+// ── INIT ─────────────────────────────────────────
+renderStats();
+renderGrid();
+</script>
+</body>
+</html>
