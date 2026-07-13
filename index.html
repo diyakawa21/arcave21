@@ -182,6 +182,36 @@ main{padding:22px 20px 80px}
   .nav-filters{display:none}
   main{padding:14px 14px 80px}
 }
+
+.scanner-overlay{display:none;position:fixed;inset:0;z-index:300;background:#000;flex-direction:column;align-items:center;justify-content:center}
+.scanner-overlay.open{display:flex}
+.scanner-video{width:100%;max-width:500px;border-radius:8px}
+.scanner-frame{position:absolute;width:260px;height:120px;border:2px solid var(--accent);border-radius:4px;box-shadow:0 0 0 9999px rgba(0,0,0,.6)}
+.scanner-line{position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);animation:scan 2s linear infinite}
+@keyframes scan{0%{top:0}100%{top:100%}}
+.scanner-label{margin-top:24px;font-family:"Space Mono",monospace;font-size:11px;color:var(--ash);text-transform:uppercase;letter-spacing:.1em}
+.scanner-close{margin-top:16px;font-family:"Space Mono",monospace;font-size:10px;background:none;border:1px solid #2a2a38;border-radius:3px;color:var(--smoke);padding:7px 18px;cursor:pointer;text-transform:uppercase;letter-spacing:.08em}
+.scanner-close:hover{border-color:var(--ash);color:var(--ash)}
+.book-preview{background:#16161f;border:1px solid #2a2a38;border-radius:8px;padding:20px;max-width:400px;width:90%;margin-top:20px;display:none}
+.book-preview.show{display:block}
+.preview-cover{width:60px;height:90px;object-fit:cover;border-radius:3px;float:left;margin-right:14px;box-shadow:-1px 1px 0 #000,2px 4px 8px rgba(0,0,0,.5)}
+.preview-title{font-size:16px;font-style:italic;color:var(--paper);margin-bottom:4px}
+.preview-author{font-family:"Space Mono",monospace;font-size:10px;color:var(--smoke);text-transform:uppercase;margin-bottom:12px}
+.preview-meta{font-family:"Space Mono",monospace;font-size:9px;color:#4a4a5a;margin-bottom:14px}
+.preview-btns{display:flex;gap:8px;clear:both;padding-top:8px}
+.add-method-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);align-items:center;justify-content:center}
+.add-method-overlay.open{display:flex}
+.add-method-box{background:#16161f;border:1px solid #2a2a38;border-radius:8px;padding:28px;max-width:340px;width:90%;text-align:center}
+.add-method-title{font-size:20px;font-style:italic;color:var(--paper);margin-bottom:6px}
+.add-method-sub{font-family:"Space Mono",monospace;font-size:10px;color:var(--smoke);text-transform:uppercase;letter-spacing:.08em;margin-bottom:24px}
+.add-method-btns{display:flex;flex-direction:column;gap:10px}
+.method-btn{font-family:"Space Mono",monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;padding:13px;border-radius:4px;cursor:pointer;border:1px solid;transition:all .15s}
+.method-scan{background:var(--accent);border-color:var(--accent);color:#fff}
+.method-scan:hover{opacity:.85}
+.method-manual{background:none;border-color:#2a2a38;color:var(--ash)}
+.method-manual:hover{border-color:var(--ash);color:var(--paper)}
+.method-isbn{background:none;border-color:#2a2a38;color:var(--ash)}
+.method-isbn:hover{border-color:var(--ash);color:var(--paper)}
 </style>
 </head>
 <body>
@@ -278,6 +308,41 @@ main{padding:22px 20px 80px}
     </div>
     <div class="journal-feed" id="journalFeed"></div>
   </div>
+
+<div class="add-method-overlay" id="addMethodOverlay">
+  <div class="add-method-box">
+    <div class="add-method-title">Add a book</div>
+    <div class="add-method-sub">How do you want to add it?</div>
+    <div class="add-method-btns">
+      <button class="method-btn method-scan" onclick="openScanner()">&#128247; Scan barcode</button>
+      <button class="method-btn method-isbn" onclick="addByISBN()">Type ISBN</button>
+      <button class="method-btn method-manual" onclick="addManually()">Enter manually</button>
+    </div>
+    <div style="margin-top:14px">
+      <button class="scanner-close" onclick="closeAddMethod()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="scanner-overlay" id="scannerOverlay">
+  <video class="scanner-video" id="scannerVideo" playsinline autoplay muted></video>
+  <div class="scanner-frame">
+    <div class="scanner-line"></div>
+  </div>
+  <div class="book-preview" id="bookPreview">
+    <img class="preview-cover" id="previewCover" src="" alt="">
+    <div class="preview-title" id="previewTitle"></div>
+    <div class="preview-author" id="previewAuthor"></div>
+    <div class="preview-meta" id="previewMeta"></div>
+    <div class="preview-btns">
+      <button class="btn btn-primary" onclick="confirmScannedBook()">Add to library</button>
+      <button class="btn btn-ghost" onclick="resetScanner()">Scan again</button>
+    </div>
+  </div>
+  <div class="scanner-label" id="scannerLabel">Point camera at the barcode</div>
+  <button class="scanner-close" onclick="closeScanner()">Cancel</button>
+</div>
+
 </div>
 
 <div class="fab-wrap" id="fabWrap">
@@ -404,10 +469,7 @@ function toggleJournal(){
   if(showingJournal) document.getElementById("composerText").focus();
 }
 
-function fabAction(){
-  if(showingJournal) document.getElementById("composerText").focus();
-  else openAddModal();
-}
+// fabAction replaced by scanner version
 
 function populateBookSelect(){
   var sel=document.getElementById("composerBook");
@@ -702,6 +764,179 @@ if(token){
     loadAll();
   }).catch(function(){logout()});
 }
+
+
+// ── SCANNER ──
+var scannedBookData = null;
+var scannerStream = null;
+var scannerInterval = null;
+var scanCanvas = document.createElement("canvas");
+var scanCtx = scanCanvas.getContext("2d");
+
+function fabAction(){
+  if(showingJournal) document.getElementById("composerText").focus();
+  else openAddMethod();
+}
+
+function openAddMethod(){
+  document.getElementById("addMethodOverlay").classList.add("open");
+}
+function closeAddMethod(){
+  document.getElementById("addMethodOverlay").classList.remove("open");
+}
+
+function openScanner(){
+  closeAddMethod();
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    alert("Camera not available on this device or browser. Use Type ISBN or Enter manually instead.");
+    return;
+  }
+  document.getElementById("scannerOverlay").classList.add("open");
+  resetScanner();
+  navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}}).then(function(stream){
+    scannerStream=stream;
+    var video=document.getElementById("scannerVideo");
+    video.srcObject=stream;
+    video.play();
+    scannerInterval=setInterval(function(){scanFrame(video)},300);
+  }).catch(function(e){
+    alert("Could not access camera: "+e.message);
+    closeScanner();
+  });
+}
+
+function closeScanner(){
+  if(scannerStream) scannerStream.getTracks().forEach(function(t){t.stop()});
+  if(scannerInterval) clearInterval(scannerInterval);
+  scannerStream=null;scannerInterval=null;
+  document.getElementById("scannerOverlay").classList.remove("open");
+  document.getElementById("bookPreview").classList.remove("show");
+  scannedBookData=null;
+}
+
+function resetScanner(){
+  document.getElementById("bookPreview").classList.remove("show");
+  document.getElementById("scannerLabel").textContent="Point camera at the barcode";
+  scannedBookData=null;
+  if(!scannerInterval){
+    var video=document.getElementById("scannerVideo");
+    if(video.srcObject) scannerInterval=setInterval(function(){scanFrame(video)},300);
+  }
+}
+
+function scanFrame(video){
+  if(!video.videoWidth) return;
+  scanCanvas.width=video.videoWidth;
+  scanCanvas.height=video.videoHeight;
+  scanCtx.drawImage(video,0,0);
+  try{
+    var imageData=scanCtx.getImageData(0,0,scanCanvas.width,scanCanvas.height);
+    // Use BarcodeDetector if available (Chrome/Android)
+    if(window.BarcodeDetector){
+      var detector=new BarcodeDetector({formats:["ean_13","ean_8","isbn"]});
+      detector.detect(scanCanvas).then(function(codes){
+        if(codes.length>0) onBarcodeDetected(codes[0].rawValue);
+      }).catch(function(){});
+    }
+  }catch(e){}
+}
+
+function onBarcodeDetected(isbn){
+  if(scannedBookData) return; // already found one
+  if(scannerInterval){clearInterval(scannerInterval);scannerInterval=null;}
+  document.getElementById("scannerLabel").textContent="Found: "+isbn+" - Looking up...";
+  lookupISBN(isbn);
+}
+
+function lookupISBN(isbn){
+  isbn=isbn.replace(/[^0-9X]/gi,"");
+  fetch("https://www.googleapis.com/books/v1/volumes?q=isbn:"+isbn).then(function(r){return r.json()}).then(function(data){
+    if(!data.items||!data.items.length){
+      document.getElementById("scannerLabel").textContent="Book not found. Try again.";
+      if(scannerStream) scannerInterval=setInterval(function(){scanFrame(document.getElementById("scannerVideo"))},300);
+      return;
+    }
+    var info=data.items[0].volumeInfo;
+    scannedBookData={
+      title:info.title||"",
+      author:(info.authors&&info.authors[0])||"",
+      pages:String(info.pageCount||""),
+      year:info.publishedDate?info.publishedDate.substring(0,4):"",
+      cover:(info.imageLinks&&(info.imageLinks.thumbnail||info.imageLinks.smallThumbnail))||"",
+      gr_review:"",genre:(info.categories&&info.categories[0])||""
+    };
+    showBookPreview(scannedBookData);
+  }).catch(function(e){
+    document.getElementById("scannerLabel").textContent="Lookup failed. Try again.";
+    if(scannerStream) scannerInterval=setInterval(function(){scanFrame(document.getElementById("scannerVideo"))},300);
+  });
+}
+
+function showBookPreview(b){
+  if(b.cover) document.getElementById("previewCover").src=b.cover;
+  document.getElementById("previewCover").style.display=b.cover?"block":"none";
+  document.getElementById("previewTitle").textContent=b.title;
+  document.getElementById("previewAuthor").textContent=b.author;
+  var meta=[];
+  if(b.year) meta.push(b.year);
+  if(b.pages) meta.push(b.pages+" pages");
+  document.getElementById("previewMeta").textContent=meta.join(" - ");
+  document.getElementById("scannerLabel").textContent="";
+  document.getElementById("bookPreview").classList.add("show");
+}
+
+function confirmScannedBook(){
+  if(!scannedBookData) return;
+  closeScanner();
+  var b=scannedBookData;
+  var dup=books.find(function(bk){return(bk.title||"").toLowerCase()===b.title.toLowerCase()});
+  if(dup){alert(b.title+" is already in your library.");return;}
+  var sc=prompt("Read status: 1=Unread, 2=Reading, 3=Read","1");
+  var statMap={"1":"unread","2":"reading","3":"read"};
+  var status=statMap[(sc||"1").trim()]||"unread";
+  var ownedAns=prompt("Do you own this book? y/n","y");
+  var owned=ownedAns&&ownedAns.toLowerCase().indexOf("y")>-1;
+  api("POST","/api/books",{
+    title:b.title,author:b.author,status:status,owned:owned,
+    pages:b.pages,year:b.year,cover:b.cover,genre:b.genre,
+    read_count:status==="read"?1:0,rating:0
+  }).then(function(nb){
+    books.push(nb);
+    renderStats();renderGrid();populateBookSelect();
+    openModal(books.length-1,true);
+  }).catch(function(e){alert("Failed: "+e.message)});
+}
+
+function addByISBN(){
+  closeAddMethod();
+  var isbn=prompt("Enter ISBN (10 or 13 digits):");
+  if(!isbn) return;
+  document.getElementById("scannerLabel") && (document.getElementById("scannerLabel").textContent="");
+  lookupISBNManual(isbn);
+}
+
+function lookupISBNManual(isbn){
+  isbn=isbn.replace(/[^0-9X]/gi,"");
+  fetch("https://www.googleapis.com/books/v1/volumes?q=isbn:"+isbn).then(function(r){return r.json()}).then(function(data){
+    if(!data.items||!data.items.length){alert("Book not found for ISBN: "+isbn);return;}
+    var info=data.items[0].volumeInfo;
+    scannedBookData={
+      title:info.title||"",
+      author:(info.authors&&info.authors[0])||"",
+      pages:String(info.pageCount||""),
+      year:info.publishedDate?info.publishedDate.substring(0,4):"",
+      cover:(info.imageLinks&&(info.imageLinks.thumbnail||info.imageLinks.smallThumbnail))||"",
+      gr_review:"",genre:(info.categories&&info.categories[0])||""
+    };
+    confirmScannedBook();
+  }).catch(function(e){alert("Lookup failed: "+e.message)});
+}
+
+function addManually(){
+  closeAddMethod();
+  openAddModal();
+}
+
 </script>
 </body>
 </html>
