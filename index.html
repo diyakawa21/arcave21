@@ -266,7 +266,8 @@ main.shelf-active .result-info{margin-bottom:0}
   border-radius:2px 2px 0 0;
   display:flex;align-items:center;justify-content:center;
   transition:transform .15s,box-shadow .15s;
-  box-shadow:inset -3px 0 6px rgba(0,0,0,.3),inset 2px 0 3px rgba(255,255,255,.05);
+  box-shadow:2px 0 4px rgba(0,0,0,.4),inset -2px 0 5px rgba(0,0,0,.25),inset 1px 0 2px rgba(255,255,255,.08);
+  overflow:hidden;
 }
 .spine-book:hover{
   transform:translateY(-8px);
@@ -274,22 +275,45 @@ main.shelf-active .result-info{margin-bottom:0}
   z-index:2;
 }
 .spine-title{
-  writing-mode:vertical-rl;
+  writing-mode:vertical-lr;
   text-orientation:mixed;
   transform:rotate(180deg);
   font-family:"EB Garamond",serif;
   font-style:italic;
-  font-size:12px;
-  line-height:1;
-  color:rgba(255,255,255,.9);
-  padding:8px 0;
-  max-height:calc(var(--spine-h) - 32px);
+  font-size:11px;
+  line-height:var(--spine-w);
+  color:rgba(255,255,255,.92);
+  height:calc(var(--spine-h) - 28px);
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
-  width:100%;
+  width:var(--spine-w);
   text-align:center;
-  letter-spacing:.02em;
+  letter-spacing:.05em;
+  position:absolute;
+  top:6px;left:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.spine-author{
+  writing-mode:vertical-lr;
+  text-orientation:mixed;
+  transform:rotate(180deg);
+  font-family:"Space Mono",monospace;
+  font-size:7px;
+  color:rgba(255,255,255,.4);
+  position:absolute;
+  bottom:18px;left:0;
+  width:var(--spine-w);
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  height:80px;
+  line-height:var(--spine-w);
+  letter-spacing:.06em;
+  text-transform:uppercase;
 }
 .spine-status{
   position:absolute;
@@ -1134,8 +1158,9 @@ function renderShelf(){
     html += "<div class='shelf-row'>";
     rowBooks.forEach(function(b){
       var sp = spineColor((b.title||"") + (b.author||""));
-      html += "<div class='spine-book " + sp + "' data-i='" + b._i + "' title='" + esc(b.title) + " - " + esc(b.author) + "'>";
+      html += "<div class='spine-book " + sp + "' data-i='" + b._i + "' title='" + esc(b.title) + " — " + esc(b.author) + "'>";
       html += "<div class='spine-title'>" + esc(b.title) + "</div>";
+      if(b.author) html += "<div class='spine-author'>" + esc(b.author) + "</div>";
       html += "<div class='spine-status " + (b.status||"unread") + "'></div>";
       if(b.owned) html += "<div class='spine-owned-dot'></div>";
       html += "</div>";
