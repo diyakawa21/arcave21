@@ -7,7 +7,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#0d0d12;--paper:#f5f2eb;--ash:#c4bfb3;--smoke:#7a7570;--accent:#c4783a;--spine-w:140px;--spine-h:210px}
+:root{
+  --ink:#0d0d12;--paper:#f5f2eb;--ash:#c4bfb3;--smoke:#7a7570;--accent:#c4783a;
+  --surface:#12121a;--surface2:#16161f;--border:#2a2a38;--border2:#1e1e2a;
+  --spine-w:36px;--spine-h:220px;
+}
+[data-theme="light"]{
+  --ink:#f0ece3;--paper:#1a1a2e;--ash:#4a4560;--smoke:#8a8590;--accent:#c4783a;
+  --surface:#e8e4db;--surface2:#dedad0;--border:#ccc8be;--border2:#d4d0c6;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--ink);color:var(--paper);font-family:"EB Garamond",Georgia,serif;font-size:16px;min-height:100vh}
 
@@ -212,6 +220,132 @@ main{padding:22px 20px 80px}
 .method-manual:hover{border-color:var(--ash);color:var(--paper)}
 .method-isbn{background:none;border-color:#2a2a38;color:var(--ash)}
 .method-isbn:hover{border-color:var(--ash);color:var(--paper)}
+
+/* ── THEME TRANSITIONS ── */
+body{transition:background .2s,color .2s}
+nav,
+.stats-bar,
+.modal,
+.journal-composer,
+.journal-entry,
+.auth-box,
+.add-method-box{transition:background .2s,border-color .2s}
+
+/* ── SHELF VIEW ── */
+.shelf-container{display:none;padding:24px 20px 80px}
+.shelf-container.active{display:block}
+.shelf-grid.active{display:none}
+main.shelf-active .result-info{margin-bottom:0}
+
+.bookshelf{display:flex;flex-direction:column;gap:0}
+.shelf-row{
+  display:flex;align-items:flex-end;
+  padding:8px 16px 0;
+  min-height:calc(var(--spine-h) + 24px);
+  background:linear-gradient(to bottom,transparent calc(var(--spine-h) + 8px),#3a2a18 calc(var(--spine-h) + 8px),#2a1a0a calc(var(--spine-h) + 16px));
+  border-left:6px solid #2a1a0a;
+  border-right:6px solid #2a1a0a;
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  gap:2px;
+}
+[data-theme="light"] .shelf-row{
+  background:linear-gradient(to bottom,transparent calc(var(--spine-h) + 8px),#8B6914 calc(var(--spine-h) + 8px),#6B4F10 calc(var(--spine-h) + 16px));
+  border-left:6px solid #6B4F10;
+  border-right:6px solid #6B4F10;
+}
+.shelf-row::-webkit-scrollbar{height:4px}
+.shelf-row::-webkit-scrollbar-thumb{background:#2a2a38;border-radius:2px}
+
+.spine-book{
+  width:var(--spine-w);
+  height:var(--spine-h);
+  flex-shrink:0;
+  cursor:pointer;
+  position:relative;
+  border-radius:2px 2px 0 0;
+  display:flex;align-items:center;justify-content:center;
+  transition:transform .15s,box-shadow .15s;
+  box-shadow:inset -3px 0 6px rgba(0,0,0,.3),inset 2px 0 3px rgba(255,255,255,.05);
+}
+.spine-book:hover{
+  transform:translateY(-8px);
+  box-shadow:inset -3px 0 6px rgba(0,0,0,.3),inset 2px 0 3px rgba(255,255,255,.05),0 8px 20px rgba(0,0,0,.5);
+  z-index:2;
+}
+.spine-title{
+  writing-mode:vertical-rl;
+  text-orientation:mixed;
+  transform:rotate(180deg);
+  font-family:"EB Garamond",serif;
+  font-style:italic;
+  font-size:12px;
+  line-height:1;
+  color:rgba(255,255,255,.9);
+  padding:8px 0;
+  max-height:calc(var(--spine-h) - 32px);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  width:100%;
+  text-align:center;
+  letter-spacing:.02em;
+}
+.spine-status{
+  position:absolute;
+  bottom:5px;
+  left:50%;
+  transform:translateX(-50%);
+  width:6px;height:6px;
+  border-radius:50%;
+  border:1px solid rgba(0,0,0,.3);
+}
+.spine-status.read{background:#4caf82}
+.spine-status.reading{background:#d4a459}
+.spine-status.unread{background:rgba(255,255,255,.2)}
+.spine-owned-dot{
+  position:absolute;top:5px;left:50%;transform:translateX(-50%);
+  width:5px;height:5px;border-radius:50%;background:#9b7ec8;
+}
+.shelf-section-label{
+  font-family:"Space Mono",monospace;font-size:9px;
+  color:var(--smoke);text-transform:uppercase;letter-spacing:.12em;
+  padding:16px 20px 4px;
+}
+
+/* spine palettes */
+.sp-0{background:linear-gradient(to right,#1a2a4a,#243560)}
+.sp-1{background:linear-gradient(to right,#3a1a1a,#501a20)}
+.sp-2{background:linear-gradient(to right,#1a3a1a,#204a20)}
+.sp-3{background:linear-gradient(to right,#3a2a0a,#4a3510)}
+.sp-4{background:linear-gradient(to right,#1a1a4a,#202060)}
+.sp-5{background:linear-gradient(to right,#3a1a3a,#4a1a50)}
+.sp-6{background:linear-gradient(to right,#1a3a3a,#104a4a)}
+.sp-7{background:linear-gradient(to right,#3a2a10,#4a3520)}
+.sp-8{background:linear-gradient(to right,#2a1a3a,#351a4a)}
+.sp-9{background:linear-gradient(to right,#1a3a2a,#104a35)}
+
+/* light theme adjustments */
+[data-theme="light"] nav{background:rgba(240,236,227,.97)}
+[data-theme="light"] .stats-bar{background:#e8e4db;border-color:var(--border)}
+[data-theme="light"] .filter-btn{border-color:var(--border);color:var(--ash)}
+[data-theme="light"] .filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+[data-theme="light"] .search-wrap input{background:#dedad0;border-color:var(--border);color:var(--paper)}
+[data-theme="light"] .modal{background:#e8e4db;border-color:var(--border)}
+[data-theme="light"] .modal-body .field-group textarea,
+[data-theme="light"] .modal-body .field-group input[type=text]{background:#dedad0;border-color:var(--border);color:var(--paper)}
+[data-theme="light"] .gr-review-box{background:#d4d0c6;border-color:var(--border);color:#5a5580}
+[data-theme="light"] .journal-composer{background:#e8e4db;border-color:var(--border)}
+[data-theme="light"] .composer-textarea{color:var(--paper)}
+[data-theme="light"] .journal-entry{background:#e8e4db;border-color:var(--border)}
+[data-theme="light"] .entry-content{color:var(--paper)}
+[data-theme="light"] .add-method-box{background:#e8e4db}
+[data-theme="light"] .book-preview{background:#e8e4db;border-color:var(--border)}
+[data-theme="light"] .cover-placeholder .ph-title,[data-theme="light"] .cover-placeholder .ph-author{color:rgba(255,255,255,.85)}
+[data-theme="light"] .auth-screen{background:var(--ink)}
+[data-theme="light"] .auth-field input{background:#dedad0;border-color:var(--border);color:var(--paper)}
+[data-theme="light"] .sort-wrap select{background:#dedad0;border-color:var(--border);color:var(--paper)}
+[data-theme="light"] .composer-book-tag select{background:#dedad0;border-color:var(--border);color:var(--paper)}
 </style>
 </head>
 <body>
@@ -256,6 +390,8 @@ main{padding:22px 20px 80px}
     </div>
     <div class="nav-right">
       <button class="nav-journal-btn" id="journalToggle" onclick="toggleJournal()">Journal</button>
+      <button class="nav-journal-btn" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark">&#9790;</button>
+      <button class="nav-journal-btn" id="viewToggle" onclick="toggleView()" title="Toggle view">&#9783; Shelf</button>
       <span class="nav-username" id="navUsername"></span>
       <button class="nav-logout" onclick="logout()">Sign out</button>
     </div>
@@ -283,10 +419,11 @@ main{padding:22px 20px 80px}
   </div>
 
   <div id="libraryView">
-    <main>
+    <main id="mainContainer">
       <div class="result-info" id="resultInfo"></div>
       <div class="shelf-grid" id="shelfGrid"></div>
     </main>
+    <div class="shelf-container" id="shelfContainer"></div>
   </div>
 
   <div id="journalView">
@@ -451,8 +588,10 @@ function loadAll(){
     journalEntries=results[1];
     renderStats();
     renderGrid();
+    if(currentView === "shelf") renderShelf();
     renderJournal();
     populateBookSelect();
+    applyView();
   }).catch(function(e){
     if(e.message.indexOf("expired")>-1||e.message.indexOf("Invalid")>-1) logout();
     else document.getElementById("shelfGrid").innerHTML="<div class='empty'>Could not load. Check connection.</div>";
@@ -936,6 +1075,93 @@ function addManually(){
   closeAddMethod();
   openAddModal();
 }
+
+
+
+// ── THEME ──
+var currentTheme = localStorage.getItem("arcave_theme") || "dark";
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  document.getElementById("themeToggle").textContent = t === "dark" ? "\u263e" : "\u2600";
+  localStorage.setItem("arcave_theme", t);
+  currentTheme = t;
+}
+function toggleTheme(){
+  applyTheme(currentTheme === "dark" ? "light" : "dark");
+}
+applyTheme(currentTheme);
+
+// ── SHELF VIEW ──
+var currentView = localStorage.getItem("arcave_view") || "grid";
+var SPINE_PALETTES = ["sp-0","sp-1","sp-2","sp-3","sp-4","sp-5","sp-6","sp-7","sp-8","sp-9"];
+
+function spineColor(s){
+  var h=0;
+  for(var i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))|0;
+  return SPINE_PALETTES[Math.abs(h)%SPINE_PALETTES.length];
+}
+
+function toggleView(){
+  currentView = currentView === "grid" ? "shelf" : "grid";
+  localStorage.setItem("arcave_view", currentView);
+  applyView();
+  if(currentView === "shelf") renderShelf();
+  else renderGrid();
+}
+
+function applyView(){
+  var isShelf = currentView === "shelf";
+  document.getElementById("mainContainer").style.display = isShelf ? "none" : "block";
+  document.getElementById("shelfContainer").classList.toggle("active", isShelf);
+  document.getElementById("viewToggle").innerHTML = isShelf ? "&#9783; Grid" : "&#9783; Shelf";
+}
+
+function renderShelf(){
+  var list = getFiltered();
+  document.getElementById("resultInfo").textContent = list.length + " book" + (list.length !== 1 ? "s" : "") + " shown";
+  var container = document.getElementById("shelfContainer");
+
+  if(!list.length){
+    container.innerHTML = "<div class='empty'>No books found.</div>";
+    return;
+  }
+
+  // Group into rows of ~20 books each
+  var BOOKS_PER_ROW = 20;
+  var html = "<div class='bookshelf'>";
+  for(var r = 0; r < list.length; r += BOOKS_PER_ROW){
+    var rowBooks = list.slice(r, r + BOOKS_PER_ROW);
+    html += "<div class='shelf-row'>";
+    rowBooks.forEach(function(b){
+      var sp = spineColor((b.title||"") + (b.author||""));
+      html += "<div class='spine-book " + sp + "' data-i='" + b._i + "' title='" + esc(b.title) + " - " + esc(b.author) + "'>";
+      html += "<div class='spine-title'>" + esc(b.title) + "</div>";
+      html += "<div class='spine-status " + (b.status||"unread") + "'></div>";
+      if(b.owned) html += "<div class='spine-owned-dot'></div>";
+      html += "</div>";
+    });
+    html += "</div>";
+  }
+  html += "</div>";
+  container.innerHTML = html;
+
+  // Click handler
+  container.querySelectorAll(".spine-book").forEach(function(el){
+    el.addEventListener("click", function(){
+      openModal(parseInt(this.getAttribute("data-i")));
+    });
+  });
+}
+
+// Override renderGrid to also update shelf if in shelf view
+var _origRenderGrid = renderGrid;
+renderGrid = function(){
+  _origRenderGrid();
+  if(currentView === "shelf") renderShelf();
+};
+
+// Init view on load
+applyView();
 
 </script>
 </body>
