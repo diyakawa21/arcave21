@@ -231,145 +231,145 @@ nav,
 .auth-box,
 .add-method-box{transition:background .2s,border-color .2s}
 
-/* ── SHELF VIEW ── */
-.shelf-container{display:none;padding:24px 20px 80px}
+/* ── SHELF ROOM VIEW ── */
+.shelf-container{display:none;padding:0 0 80px}
 .shelf-container.active{display:block}
-.shelf-grid.active{display:none}
-main.shelf-active .result-info{margin-bottom:0}
-
-.bookshelf{display:flex;flex-direction:column;gap:0}
-.shelf-row{
-  display:flex;align-items:flex-end;
-  padding:8px 16px 0;
-  min-height:calc(var(--spine-h) + 24px);
-  background:linear-gradient(to bottom,transparent calc(var(--spine-h) + 8px),#3a2a18 calc(var(--spine-h) + 8px),#2a1a0a calc(var(--spine-h) + 16px));
-  border-left:6px solid #2a1a0a;
-  border-right:6px solid #2a1a0a;
+.shelf-room{padding:0}
+.shelf-section{margin-bottom:0}
+.shelf-section-header{
+  padding:28px 28px 10px;
+  display:flex;align-items:baseline;gap:14px;
+}
+.shelf-section-name{
+  font-family:"EB Garamond",serif;
+  font-size:24px;font-style:italic;
+  color:var(--paper);
+}
+[data-theme="light"] .shelf-section-name{color:#1a1a2e}
+.shelf-section-count{
+  font-family:"Space Mono",monospace;
+  font-size:9px;color:var(--smoke);
+  text-transform:uppercase;letter-spacing:.1em;
+}
+.shelf-plank{
+  display:flex;
+  align-items:flex-end;
+  padding:6px 28px 0;
+  min-height:calc(var(--spine-h) + 20px);
+  background:linear-gradient(
+    to bottom,
+    transparent calc(var(--spine-h) + 6px),
+    #4a3218 calc(var(--spine-h) + 6px),
+    #3a2510 calc(var(--spine-h) + 14px),
+    #2a1a08 calc(var(--spine-h) + 20px)
+  );
+  border-left:8px solid #2a1a08;
+  border-right:8px solid #2a1a08;
   flex-wrap:nowrap;
   overflow-x:auto;
-  gap:2px;
+  gap:1px;
+  scrollbar-width:thin;
 }
-[data-theme="light"] .shelf-row{
-  background:linear-gradient(to bottom,transparent calc(var(--spine-h) + 8px),#8B6914 calc(var(--spine-h) + 8px),#6B4F10 calc(var(--spine-h) + 16px));
-  border-left:6px solid #6B4F10;
-  border-right:6px solid #6B4F10;
+[data-theme="light"] .shelf-plank{
+  background:linear-gradient(
+    to bottom,
+    transparent calc(var(--spine-h) + 6px),
+    #8B6914 calc(var(--spine-h) + 6px),
+    #7a5a10 calc(var(--spine-h) + 14px),
+    #6a4a08 calc(var(--spine-h) + 20px)
+  );
+  border-left:8px solid #6a4a08;
+  border-right:8px solid #6a4a08;
 }
-.shelf-row::-webkit-scrollbar{height:4px}
-.shelf-row::-webkit-scrollbar-thumb{background:#2a2a38;border-radius:2px}
+.shelf-plank::-webkit-scrollbar{height:3px}
+.shelf-plank::-webkit-scrollbar-thumb{background:#3a2510;border-radius:2px}
+.shelf-section-divider{
+  height:1px;
+  background:linear-gradient(to right,transparent,var(--border),transparent);
+  margin:20px 28px 0;
+}
 
+/* ── SPINE ── */
 .spine-book{
   width:var(--spine-w);
+  min-width:var(--spine-w);
   height:var(--spine-h);
   flex-shrink:0;
   cursor:pointer;
   position:relative;
   border-radius:2px 2px 0 0;
-  display:flex;align-items:center;justify-content:center;
-  transition:transform .15s,box-shadow .15s;
-  box-shadow:2px 0 4px rgba(0,0,0,.4),inset -2px 0 5px rgba(0,0,0,.25),inset 1px 0 2px rgba(255,255,255,.08);
   overflow:hidden;
+  transition:transform .15s,filter .15s;
+  box-shadow:2px 0 3px rgba(0,0,0,.5),inset -2px 0 4px rgba(0,0,0,.3),inset 1px 0 2px rgba(255,255,255,.06);
 }
 .spine-book:hover{
-  transform:translateY(-8px);
-  box-shadow:inset -3px 0 6px rgba(0,0,0,.3),inset 2px 0 3px rgba(255,255,255,.05),0 8px 20px rgba(0,0,0,.5);
+  transform:translateY(-10px);
+  filter:brightness(1.15);
   z-index:2;
 }
+.spine-book::after{
+  content:"";
+  position:absolute;
+  top:0;left:0;
+  width:4px;height:100%;
+  background:rgba(0,0,0,.3);
+}
 .spine-title{
+  position:absolute;
+  top:10px;left:0;
+  width:var(--spine-w);
+  height:calc(var(--spine-h) - 36px);
   writing-mode:vertical-lr;
   text-orientation:mixed;
   transform:rotate(180deg);
   font-family:"EB Garamond",serif;
   font-style:italic;
-  font-size:11px;
-  line-height:var(--spine-w);
+  font-size:12px;
   color:rgba(255,255,255,.92);
-  height:calc(var(--spine-h) - 28px);
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-  width:var(--spine-w);
-  text-align:center;
-  letter-spacing:.05em;
-  position:absolute;
-  top:6px;left:0;
   display:flex;
   align-items:center;
   justify-content:center;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  letter-spacing:.04em;
+  line-height:var(--spine-w);
+  text-shadow:0 1px 2px rgba(0,0,0,.5);
 }
 .spine-author{
+  position:absolute;
+  bottom:18px;left:0;
+  width:var(--spine-w);
+  height:60px;
   writing-mode:vertical-lr;
   text-orientation:mixed;
   transform:rotate(180deg);
   font-family:"Space Mono",monospace;
   font-size:7px;
-  color:rgba(255,255,255,.4);
-  position:absolute;
-  bottom:18px;left:0;
-  width:var(--spine-w);
-  text-align:center;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  height:80px;
+  color:rgba(255,255,255,.35);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;white-space:nowrap;
+  text-transform:uppercase;letter-spacing:.08em;
   line-height:var(--spine-w);
-  letter-spacing:.06em;
-  text-transform:uppercase;
 }
 .spine-status{
   position:absolute;
-  bottom:5px;
-  left:50%;
+  bottom:5px;left:50%;
   transform:translateX(-50%);
-  width:6px;height:6px;
+  width:5px;height:5px;
   border-radius:50%;
   border:1px solid rgba(0,0,0,.3);
 }
 .spine-status.read{background:#4caf82}
 .spine-status.reading{background:#d4a459}
-.spine-status.unread{background:rgba(255,255,255,.2)}
+.spine-status.unread{background:rgba(255,255,255,.15)}
 .spine-owned-dot{
-  position:absolute;top:5px;left:50%;transform:translateX(-50%);
-  width:5px;height:5px;border-radius:50%;background:#9b7ec8;
-}
-.shelf-section-label{
-  font-family:"Space Mono",monospace;font-size:9px;
-  color:var(--smoke);text-transform:uppercase;letter-spacing:.12em;
-  padding:16px 20px 4px;
+  position:absolute;top:5px;left:50%;
+  transform:translateX(-50%);
+  width:5px;height:5px;
+  border-radius:50%;background:#9b7ec8;
 }
 
-/* spine palettes */
-.sp-0{background:linear-gradient(to right,#1a2a4a,#243560)}
-.sp-1{background:linear-gradient(to right,#3a1a1a,#501a20)}
-.sp-2{background:linear-gradient(to right,#1a3a1a,#204a20)}
-.sp-3{background:linear-gradient(to right,#3a2a0a,#4a3510)}
-.sp-4{background:linear-gradient(to right,#1a1a4a,#202060)}
-.sp-5{background:linear-gradient(to right,#3a1a3a,#4a1a50)}
-.sp-6{background:linear-gradient(to right,#1a3a3a,#104a4a)}
-.sp-7{background:linear-gradient(to right,#3a2a10,#4a3520)}
-.sp-8{background:linear-gradient(to right,#2a1a3a,#351a4a)}
-.sp-9{background:linear-gradient(to right,#1a3a2a,#104a35)}
-
-/* light theme adjustments */
-[data-theme="light"] nav{background:rgba(240,236,227,.97)}
-[data-theme="light"] .stats-bar{background:#e8e4db;border-color:var(--border)}
-[data-theme="light"] .filter-btn{border-color:var(--border);color:var(--ash)}
-[data-theme="light"] .filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
-[data-theme="light"] .search-wrap input{background:#dedad0;border-color:var(--border);color:var(--paper)}
-[data-theme="light"] .modal{background:#e8e4db;border-color:var(--border)}
-[data-theme="light"] .modal-body .field-group textarea,
-[data-theme="light"] .modal-body .field-group input[type=text]{background:#dedad0;border-color:var(--border);color:var(--paper)}
-[data-theme="light"] .gr-review-box{background:#d4d0c6;border-color:var(--border);color:#5a5580}
-[data-theme="light"] .journal-composer{background:#e8e4db;border-color:var(--border)}
-[data-theme="light"] .composer-textarea{color:var(--paper)}
-[data-theme="light"] .journal-entry{background:#e8e4db;border-color:var(--border)}
-[data-theme="light"] .entry-content{color:var(--paper)}
-[data-theme="light"] .add-method-box{background:#e8e4db}
-[data-theme="light"] .book-preview{background:#e8e4db;border-color:var(--border)}
-[data-theme="light"] .cover-placeholder .ph-title,[data-theme="light"] .cover-placeholder .ph-author{color:rgba(255,255,255,.85)}
-[data-theme="light"] .auth-screen{background:var(--ink)}
-[data-theme="light"] .auth-field input{background:#dedad0;border-color:var(--border);color:var(--paper)}
-[data-theme="light"] .sort-wrap select{background:#dedad0;border-color:var(--border);color:var(--paper)}
-[data-theme="light"] .composer-book-tag select{background:#dedad0;border-color:var(--border);color:var(--paper)}
 </style>
 </head>
 <body>
@@ -1140,43 +1140,114 @@ function applyView(){
   document.getElementById("viewToggle").innerHTML = isShelf ? "&#9783; Grid" : "&#9783; Shelf";
 }
 
+
+// ── GENRE ASSIGNMENT ──
+var GENRE_RULES = {
+  "Classic Literature": ["kafka","camus","dostoevsky","tolstoy","dickens","austen","bronte","woolf","orwell","fitzgerald","steinbeck","hemingway","faulkner","joyce","wilde","hugo","flaubert","zola","balzac","chekhov","turgenev","gogol","pushkin","dante","cervantes","homer","virgil","shakespeare","milton","swift","defoe","fielding","richardson","sterne","hardy","george eliot","thomas hardy","the stranger","the trial","crime and punishment","war and peace","anna karenina","brothers karamazov","the idiot","notes from underground","the metamorphosis","in the penal colony","a happy death","the rebel","the first man","the myth of sisyphus","nausea","the plague"],
+  "Contemporary Fiction": ["normal people","conversations with friends","beautiful world","rooney","one day","david nicholls","the corrections","franzen","freedom","atonement","ian mcewan","saturday","amsterdam","on chesil beach","zadie smith","white teeth","NW","on beauty","the autograph man","attachment","swing time","feel free","grand union"],
+  "Young Adult": ["adam silvera","they both die","history is all","infinity son","more happy","what if it's us","cassandra clare","mortal instruments","city of bones","divergent","veronica roth","hunger games","suzanne collins","maze runner","james dashner","the fault in our stars","john green","paper towns","looking for alaska","turtles all the way","rainbow rowell","eleanor & park","fangirl","carry on","wayward son","sarah j maas","throne of glass","court of thorns","kingdom of the wicked","kerri maniscalco","alexandra bracken","darkest minds","never fade","in the afterlight","the darkest legacy","becky albertalli","simon vs","leah on the offbeat","what if it","holly jackson","a good girl","as good as dead","one of us is lying","karen mcmanus","the cousins","e lockhart","we were liars","family of liars","genuine fraud"],
+  "Literary Fiction": ["normal people","beautiful world","rooney","colm toibin","colum mccann","kazuo ishiguro","remains of the day","never let me go","the buried giant","when we were orphans","aravind adiga","white tiger","the god of small things","arundhati roy","orhan pamuk","my name is red","snow","the museum of innocence","haruki murakami","norwegian wood","kafka on the shore","1q84","colorless tsukuru","south of the border","the wind-up bird","sputnik sweetheart","ocean vuong","on earth","gabriel garcia marquez","one hundred years","love in the time","isabel allende","the house of the spirits","chimamanda","purple hibiscus","half of a yellow sun","americanah","we need to talk about kevin","lionel shriver"],
+  "Romance": ["colleen hoover","ugly love","it ends with us","november 9","confess","verity","reminders of him","heart bones","without merit","maybe someday","emily henry","beach read","people we meet","book lovers","happy place","taylor jenkins reid","daisy jones","seven husbands","malibu rising","carrie soto","ana huang","twisted love","twisted games","twisted hate","twisted lies","icebreaker","a court of","fourth wing","iron flame","onyx storm","assistant","practice makes perfect","elena armas","the spanish love deception","the american roommate","chloe liese","in a holidaze","talia hibbert","get a life chloe","take a hint"],
+  "Thriller & Mystery": ["gone girl","gillian flynn","dark places","sharp objects","the woman in","behind closed doors","b.a. paris","the silent patient","alex michaelides","the maidens","the watcher","in a dark dark wood","ruth ware","the turn","the lying game","one by one","zero days","big little lies","liane moriarty","nine perfect strangers","truly madly guilty","what alice forgot","the husband","tana french","in the woods","the likeness","faithful place","broken harbour","the witch elm","into the woods","girl with the dragon tattoo","stieg larsson","the girl who","millennium","agatha christie","and then there were none","murder on the orient","death on the nile","the abc murders","hercule poirot","miss marple","american psycho","bret easton ellis","less than zero"],
+  "Horror & Dark Fiction": ["stephen king","it","the shining","pet sematary","misery","carrie","the stand","needful things","the dark tower","shirley jackson","haunting of hill","we have always lived","the lottery","edgar allan poe","lovecraft","dracula","bram stoker","frankenstein","mary shelley","the picture of dorian gray","oscar wilde horror"],
+  "Science Fiction": ["dune","frank herbert","ender's game","orson scott card","foundation","isaac asimov","hitchhiker's guide","douglas adams","the martian","andy weir","project hail mary","1984","brave new world","aldous huxley","fahrenheit 451","ray bradbury","the handmaid's tale","margaret atwood","oryx and crake","maddaddam","the left hand of darkness","ursula le guin","neuromancer","william gibson","do androids dream","philip k dick","the man in the high castle","ubik","slaughterhouse","kurt vonnegut","cat's cradle","a wrinkle in time","madeleine l'engle","the giver","lois lowry","ender","speaker for the dead","xenocide"],
+  "Fantasy": ["lord of the rings","tolkien","the hobbit","silmarillion","harry potter","j.k. rowling","name of the wind","patrick rothfuss","wise man's fear","way of kings","brandon sanderson","mistborn","stormlight","elantris","warbreaker","the final empire","wheel of time","robert jordan","a song of ice and fire","george r.r. martin","game of thrones","clash of kings","storm of swords","feast for crows","dance with dragons","american gods","neil gaiman","good omens","terry pratchett","discworld","the night circus","erin morgenstern","shadow and bone","leigh bardugo","six of crows","crooked kingdom","king of scars","rule of wolves","the cruel prince","holly black","folk of the air","one dark throne","red rising","pierce brown","morning star","iron gold"],
+  "Non-Fiction": ["sapiens","yuval noah harari","homo deus","21 lessons","thinking fast","daniel kahneman","nudge","richard thaler","freakonomics","outliers","malcolm gladwell","blink","tipping point","the power of habit","charles duhigg","atomic habits","james clear","deep work","cal newport","digital minimalism","educated","tara westover","becoming","michelle obama","the diary of","anne frank","man's search for meaning","viktor frankl","night","elie wiesel","in cold blood","truman capote","the immortal life","rebecca skloot","when breath becomes air","paul kalanithi","being mortal","atul gawande","the body keeps the score","bessel van der kolk","why does he do that","lundy bancroft","the body","bill bryson","a short history","i know why the caged bird","maya angelou"],
+  "Psychology & Self-Help": ["the subtle art","mark manson","everything is f","you are a badass","jen sincero","the gifts of imperfection","brene brown","daring greatly","rising strong","the power of now","eckhart tolle","a new earth","the alchemist","paulo coelho","ikigai","the 5am club","robin sharma","the 7 habits","stephen covey","how to win friends","dale carnegie","think and grow rich","napoleon hill","rich dad poor dad","robert kiyosaki","the lean startup","zero to one","bad blood","the innovators","walter isaacson","steve jobs","elon musk","i want to die but","baek se-hee","the midnight library","matt haig","reasons to stay alive","notes on a nervous planet","lost connections","i dont want to talk about it","lost connections","johann hari","what happened to you","bruce perry","the body keeps","van der kolk"],
+  "Historical Fiction": ["all the light we cannot see","anthony doerr","the nightingale","kristin hannah","the great alone","beneath a scarlet sky","mark sullivan","the alice network","kate quinn","the rose code","the huntress","people of the book","geraldine brooks","march","year of wonders","hilary mantel","wolf hall","bring up the bodies","the mirror and the light","pillars of the earth","ken follett","world without end","column of fire","outlander","diana gabaldon","the name of the rose","umberto eco","a gentleman in moscow","amor towles","rules of civility","lincoln highway","the kite runner","khaled hosseini","a thousand splendid suns","and the mountains","the secret history","donna tartt","the little friend","the goldfinch"],
+  "Poetry & Essays": ["rupi kaur","milk and honey","the sun and her flowers","home body","atticus","lang leav","love and misadventure","sea of strangers","rumi","hafiz","pablo neruda","twenty love poems","sylvia plath","the bell jar","ariel","mary oliver","upstream","devotions","felicity","ocean vuong","night sky with exit wounds","richard siken","crush","war of the foxes","book of hours","david whyte"],
+  "Graphic Novel & Manga": ["watchmen","alan moore","v for vendetta","from hell","the league","neil gaiman sandman","maus","art spiegelman","persepolis","marjane satrapi","fun home","alison bechdel","are you my mother","this one summer","saga","brian k vaughan","y the last man","paper girls","die","deadly class"],
+};
+var GENRE_COLORS = {
+  "Classic Literature": "linear-gradient(to right,#2a1a0a,#3a2510)",
+  "Contemporary Fiction": "linear-gradient(to right,#0a1a2a,#102035)",
+  "Young Adult": "linear-gradient(to right,#2a0a2a,#350a40)",
+  "Literary Fiction": "linear-gradient(to right,#0a2a1a,#0f3020)",
+  "Romance": "linear-gradient(to right,#2a0a15,#3a0f20)",
+  "Thriller & Mystery": "linear-gradient(to right,#1a1a0a,#252510)",
+  "Horror & Dark Fiction": "linear-gradient(to right,#1a0a0a,#250505)",
+  "Science Fiction": "linear-gradient(to right,#0a0a2a,#050535)",
+  "Fantasy": "linear-gradient(to right,#0a1a0a,#0f2510)",
+  "Non-Fiction": "linear-gradient(to right,#1a150a,#251a0a)",
+  "Psychology & Self-Help": "linear-gradient(to right,#150a2a,#1a0f35)",
+  "Historical Fiction": "linear-gradient(to right,#251a0a,#302010)",
+  "Poetry & Essays": "linear-gradient(to right,#0a2525,#0f3030)",
+  "Graphic Novel & Manga": "linear-gradient(to right,#200a25,#280f30)",
+  "Unsorted": "linear-gradient(to right,#151515,#1a1a1a)",
+};
+var GENRE_ORDER = [
+  "Classic Literature","Literary Fiction","Contemporary Fiction","Historical Fiction",
+  "Young Adult","Romance","Thriller & Mystery","Horror & Dark Fiction",
+  "Science Fiction","Fantasy","Non-Fiction","Psychology & Self-Help",
+  "Poetry & Essays","Graphic Novel & Manga","Unsorted"
+];
+
+function assignGenre(b){
+  if(b.genre && b.genre.trim()) return b.genre.trim();
+  var haystack = ((b.title||"") + " " + (b.author||"")).toLowerCase();
+  for(var genre in GENRE_RULES){
+    var keywords = GENRE_RULES[genre];
+    for(var k=0;k<keywords.length;k++){
+      if(haystack.indexOf(keywords[k].toLowerCase()) > -1) return genre;
+    }
+  }
+  return "Unsorted";
+}
+
 function renderShelf(){
   var list = getFiltered();
-  document.getElementById("resultInfo").textContent = list.length + " book" + (list.length !== 1 ? "s" : "") + " shown";
+  document.getElementById("resultInfo").textContent = list.length + " book" + (list.length!==1?"s":"") + " shown";
   var container = document.getElementById("shelfContainer");
+  if(!list.length){container.innerHTML="<div class='empty'>No books found.</div>";return}
 
-  if(!list.length){
-    container.innerHTML = "<div class='empty'>No books found.</div>";
-    return;
-  }
+  // Group by genre
+  var grouped = {};
+  GENRE_ORDER.forEach(function(g){grouped[g]=[]});
+  list.forEach(function(b){
+    var g = assignGenre(b);
+    if(!grouped[g]) grouped[g]=[];
+    grouped[g].push(b);
+  });
 
-  // Group into rows of ~20 books each
-  var BOOKS_PER_ROW = 20;
-  var html = "<div class='bookshelf'>";
-  for(var r = 0; r < list.length; r += BOOKS_PER_ROW){
-    var rowBooks = list.slice(r, r + BOOKS_PER_ROW);
-    html += "<div class='shelf-row'>";
-    rowBooks.forEach(function(b){
-      var sp = spineColor((b.title||"") + (b.author||""));
-      html += "<div class='spine-book " + sp + "' data-i='" + b._i + "' title='" + esc(b.title) + " — " + esc(b.author) + "'>";
-      html += "<div class='spine-title'>" + esc(b.title) + "</div>";
-      if(b.author) html += "<div class='spine-author'>" + esc(b.author) + "</div>";
-      html += "<div class='spine-status " + (b.status||"unread") + "'></div>";
-      if(b.owned) html += "<div class='spine-owned-dot'></div>";
-      html += "</div>";
-    });
-    html += "</div>";
-  }
-  html += "</div>";
-  container.innerHTML = html;
+  var roomHtml = "<div class='shelf-room'>";
+  GENRE_ORDER.forEach(function(genre){
+    var books = grouped[genre];
+    if(!books||!books.length) return;
+    var shelfColor = GENRE_COLORS[genre] || GENRE_COLORS["Unsorted"];
 
-  // Click handler
+    roomHtml += "<div class='shelf-section'>";
+    roomHtml += "<div class='shelf-section-header'>";
+    roomHtml += "<div class='shelf-section-name'>" + genre + "</div>";
+    roomHtml += "<div class='shelf-section-count'>" + books.length + " book" + (books.length!==1?"s":"") + "</div>";
+    roomHtml += "</div>";
+
+    // Split into rows of 25
+    var BOOKS_PER_ROW = 25;
+    for(var r=0;r<books.length;r+=BOOKS_PER_ROW){
+      var row = books.slice(r, r+BOOKS_PER_ROW);
+      roomHtml += "<div class='shelf-plank'>";
+      row.forEach(function(b){
+        roomHtml += "<div class='spine-book' data-i='" + b._i + "' style='background:" + shelfColor + "' title='" + esc(b.title) + " — " + esc(b.author) + "'>";
+        roomHtml += "<div class='spine-title'>" + esc(b.title) + "</div>";
+        if(b.author) roomHtml += "<div class='spine-author'>" + esc(b.author.split(" ").pop()) + "</div>";
+        roomHtml += "<div class='spine-status " + (b.status||"unread") + "'></div>";
+        if(b.owned) roomHtml += "<div class='spine-owned-dot'></div>";
+        roomHtml += "</div>";
+      });
+      roomHtml += "</div>";
+    }
+    roomHtml += "<div class='shelf-section-divider'></div></div>";
+  });
+  roomHtml += "</div>";
+  container.innerHTML = roomHtml;
+
   container.querySelectorAll(".spine-book").forEach(function(el){
-    el.addEventListener("click", function(){
+    el.addEventListener("click",function(){
       openModal(parseInt(this.getAttribute("data-i")));
     });
   });
 }
+
 
 // Override renderGrid to also update shelf if in shelf view
 var _origRenderGrid = renderGrid;
